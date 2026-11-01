@@ -49,6 +49,7 @@ export const itemSchema = z.object({
   description: z.string().max(5000).optional(),
   notes: z.string().max(5000).optional(),
   is_collection: z.boolean().optional(),
+  needs_review: z.boolean().optional(),
   photos: z.array(photoName).max(10).optional(),
 });
 export const boxSchema = z.object({

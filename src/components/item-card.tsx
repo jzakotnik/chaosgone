@@ -3,11 +3,22 @@ import Link from "next/link";
 import { ImageOff, Layers } from "lucide-react";
 import type { Item } from "@/lib/types";
 
-export function ItemCard({ item, quantityLabel }: { item: Item; quantityLabel?: string }) {
+export function ItemCard({
+  item,
+  quantityLabel,
+  reviewLabel,
+  href,
+}: {
+  item: Item;
+  quantityLabel?: string;
+  /** Text of the "needs review" badge; the badge is only shown when this is passed. */
+  reviewLabel?: string;
+  href?: string;
+}) {
   const photo = item.photos[0];
   return (
     <Link
-      href={`/item/${item.id}`}
+      href={href ?? `/item/${item.id}`}
       className="plate group flex flex-col overflow-hidden transition-transform active:translate-y-px"
     >
       <div className="relative aspect-[4/3] bg-muted">
@@ -28,6 +39,11 @@ export function ItemCard({ item, quantityLabel }: { item: Item; quantityLabel?: 
         {item.is_collection && (
           <span className="absolute left-1.5 top-1.5 grid size-6 place-items-center rounded-sm bg-primary text-primary-foreground">
             <Layers className="size-4" />
+          </span>
+        )}
+        {item.needs_review && reviewLabel && (
+          <span className="absolute bottom-1.5 left-1.5 rounded-sm bg-accent px-1.5 py-0.5 text-xs font-bold uppercase text-accent-foreground">
+            {reviewLabel}
           </span>
         )}
         {quantityLabel && (

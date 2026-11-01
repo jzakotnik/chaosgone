@@ -10,6 +10,9 @@ the code and docs are English.
 - **Collections**: tick "Collection of several parts" for assortments (e.g. dowels and screws in one tin).
   Claude then lists the different kinds it sees (with size and count where recognisable) as a bullet list
   in the description. The list is plain text you can edit, and it is searchable.
+- **Batch import** (`/batch`): pick a box and many photos, one photo = one item. Each photo is identified by Claude
+  and saved right away (2 at a time). If Claude fails for a photo, the item is still created, named after the file.
+  Batch items are flagged **"Review"**; the review list walks you through them one by one.
 - **Search**: one search bar over all fields, fuzzy and German-aware (plurals, compound words such as
   *Schraubendreher*, typos, EAN). Free and fully local.
 - **Optional AI search** ("Search with Claude"): only when you click it, the inventory is sent to Claude as JSON

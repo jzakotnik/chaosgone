@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS items (
   description TEXT NOT NULL DEFAULT '',
   notes       TEXT NOT NULL DEFAULT '',
   is_collection INTEGER NOT NULL DEFAULT 0,
+  needs_review  INTEGER NOT NULL DEFAULT 0,
   created_at  TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -37,6 +38,9 @@ function migrate(d: Database.Database) {
   const cols = d.prepare("PRAGMA table_info(items)").all() as { name: string }[];
   if (!cols.some((c) => c.name === "is_collection")) {
     d.exec("ALTER TABLE items ADD COLUMN is_collection INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!cols.some((c) => c.name === "needs_review")) {
+    d.exec("ALTER TABLE items ADD COLUMN needs_review INTEGER NOT NULL DEFAULT 0");
   }
 }
 

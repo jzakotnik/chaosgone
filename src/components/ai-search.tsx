@@ -46,7 +46,7 @@ export function AiSearch({ q }: { q: string }) {
             <ul className="grid gap-3 sm:grid-cols-2">
               {result.matches.map(({ item, reason }) => (
                 <li key={item.id} className="space-y-1">
-                  <ItemCard item={item} quantityLabel={item.quantity ? `×${item.quantity}` : undefined} />
+                  <ItemCard item={item} reviewLabel={t("review.badge")} quantityLabel={item.quantity ? `×${item.quantity}` : undefined} />
                   <p className="text-sm text-muted-foreground">{reason}</p>
                 </li>
               ))}

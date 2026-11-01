@@ -2,9 +2,10 @@ import { db } from "./db";
 import { deletePhotoFiles } from "./photos";
 import type { Box, Item, ItemInput } from "./types";
 
-type ItemRow = Omit<Item, "photos" | "is_collection"> & {
+type ItemRow = Omit<Item, "photos" | "is_collection" | "needs_review"> & {
   photo_list: string | null;
   is_collection: number;
+  needs_review: number;
 };
 
 const ITEM_SELECT = `
@@ -18,6 +19,7 @@ function toItem(r: ItemRow): Item {
   return {
     ...rest,
     is_collection: Boolean(r.is_collection),
+    needs_review: Boolean(r.needs_review),
     photos: photo_list ? photo_list.split(",") : [],
   };
 }
@@ -72,6 +74,18 @@ export async function deleteBox(id: number): Promise<boolean> {
 }
 
 // ---- items ----
+/** Items still waiting for a human look (batch import), oldest first. */
+export function listItemsToReview(): Item[] {
+  const rows = db()
+    .prepare(`${ITEM_SELECT} WHERE i.needs_review = 1 ORDER BY i.id ASC`)
+    .all() as ItemRow[];
+  return rows.map(toItem);
+}
+
+export function countToReview(): number {
+  return (db().prepare("SELECT count(*) AS n FROM items WHERE needs_review = 1").get() as { n: number }).n;
+}
+
 export function listItems(boxId?: number): Item[] {
   const rows = (
     boxId === undefined
@@ -104,8 +118,8 @@ export function createItem(input: ItemInput): Item {
   const tx = db().transaction(() => {
     const r = db()
       .prepare(
-        `INSERT INTO items (box_id, name, quantity, ean, description, notes, is_collection)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO items (box_id, name, quantity, ean, description, notes, is_collection, needs_review)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         input.box_id,
@@ -115,6 +129,7 @@ export function createItem(input: ItemInput): Item {
         input.description ?? "",
         input.notes ?? "",
         input.is_collection ? 1 : 0,
+        input.needs_review ? 1 : 0,
       );
     const id = Number(r.lastInsertRowid);
     writePhotos(id, input.photos ?? []);
@@ -135,7 +150,7 @@ export async function updateItem(
     db()
       .prepare(
         `UPDATE items SET box_id = ?, name = ?, quantity = ?, ean = ?, description = ?,
-         notes = ?, is_collection = ?, updated_at = datetime('now') WHERE id = ?`,
+         notes = ?, is_collection = ?, needs_review = ?, updated_at = datetime('now') WHERE id = ?`,
       )
       .run(
         input.box_id ?? cur.box_id,
@@ -145,6 +160,7 @@ export async function updateItem(
         input.description ?? cur.description,
         input.notes ?? cur.notes,
         isCollection ? 1 : 0,
+        (input.needs_review ?? cur.needs_review) ? 1 : 0,
         id,
       );
     if (input.photos) {

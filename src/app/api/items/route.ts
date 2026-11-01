@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { createItem, getBox, listItems } from "@/lib/repo";
+import { createItem, getBox, listItems, listItemsToReview } from "@/lib/repo";
 import { body, err, itemSchema, parseId } from "@/lib/http";
 
 export async function GET(req: Request) {
-  const box = new URL(req.url).searchParams.get("box");
+  const params = new URL(req.url).searchParams;
+  if (params.get("review") === "1") return NextResponse.json(listItemsToReview());
+  const box = params.get("box");
   const boxId = box ? parseId(box) : undefined;
   if (box && !boxId) return err(400, "invalid_box");
   return NextResponse.json(listItems(boxId ?? undefined));
