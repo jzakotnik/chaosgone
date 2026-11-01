@@ -14,7 +14,8 @@ export async function POST(req: Request) {
     const filename = await savePhoto(Buffer.from(await file.arrayBuffer()));
     void cleanupOrphanPhotos().catch(() => {});
     return NextResponse.json({ filename }, { status: 201 });
-  } catch {
+  } catch (e) {
+    console.error("photo upload failed:", e);
     return err(415, "unsupported_image");
   }
 }

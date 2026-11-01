@@ -64,6 +64,8 @@ export type Classification = {
   description: string;
   keywords: string[];
   quantity: number | null;
+  /** Only filled for collections: the distinct kinds of things in it. */
+  contents: { name: string; quantity: number | null; detail: string }[];
 };
 
 const CLASSIFY_SCHEMA = {
@@ -73,8 +75,21 @@ const CLASSIFY_SCHEMA = {
     description: { type: "string" },
     keywords: { type: "array", items: { type: "string" } },
     quantity: { type: ["integer", "null"] },
+    contents: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          quantity: { type: ["integer", "null"] },
+          detail: { type: "string" },
+        },
+        required: ["name", "quantity", "detail"],
+        additionalProperties: false,
+      },
+    },
   },
-  required: ["name", "description", "keywords", "quantity"],
+  required: ["name", "description", "keywords", "quantity", "contents"],
   additionalProperties: false,
 };
 
@@ -85,6 +100,8 @@ export async function classifyPhotos(
     /** What the owner already knows (name, own notes, extra hint). Treated as reliable. */
     hint?: string;
     boxName?: string;
+    /** The photo shows an assortment of different small things kept together. */
+    collection?: boolean;
   },
 ): Promise<Classification> {
   const lang = LANG[opts.locale] ?? "German";
@@ -111,16 +128,28 @@ export async function classifyPhotos(
       ...images,
       {
         type: "text",
-        text:
-          `Identify the item in the photo(s). ${context}\n` +
-          `- name: short, specific name (2-5 words), e.g. "Torx-Schraubendreher T20".\n` +
-          `- description: 2-4 sentences: what it is, what it is used for, material/condition, any readable markings.\n` +
-          `- keywords: 3-8 search words including synonyms and the general category.\n` +
-          `- quantity: the number of identical pieces clearly visible, or null if unsure.`,
+        text: opts.collection
+          ? `The photo(s) show a COLLECTION: an assortment of different small things kept together ` +
+            `(e.g. various dowels, screws, washers). ${context}\n` +
+            `- name: a short name for the whole collection, e.g. "Sortiment Dübel und Schrauben".\n` +
+            `- description: 1-2 sentences about the collection as a whole (what it is for, how it is kept, condition). ` +
+            `Do not repeat the contents list here.\n` +
+            `- contents: one entry per distinct kind of item you can recognise. name = what it is incl. type/size only ` +
+            `if readable or clearly recognisable (e.g. "Spreizdübel 8 mm"); quantity = count if you can count it reliably, ` +
+            `else null; detail = short extra info (material, head type, packaging) or an empty string. ` +
+            `Group identical things, never invent sizes or counts, at most 30 entries, most numerous or important first.\n` +
+            `- keywords: 5-12 search words incl. synonyms and every main kind of item.\n` +
+            `- quantity: always null.`
+          : `Identify the item in the photo(s). ${context}\n` +
+            `- name: short, specific name (2-5 words), e.g. "Torx-Schraubendreher T20".\n` +
+            `- description: 2-4 sentences: what it is, what it is used for, material/condition, any readable markings.\n` +
+            `- keywords: 3-8 search words including synonyms and the general category.\n` +
+            `- quantity: the number of identical pieces clearly visible, or null if unsure.\n` +
+            `- contents: always an empty array.`,
       },
     ],
     schema: CLASSIFY_SCHEMA,
-    maxTokens: 1500,
+    maxTokens: opts.collection ? 3000 : 1500,
   });
 }
 
@@ -160,6 +189,7 @@ export async function aiSearch(
     box: i.box_name,
     name: i.name,
     quantity: i.quantity,
+    collection: i.is_collection || undefined,
     ean: i.ean,
     description: i.description,
     notes: i.notes,

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ImageOff } from "lucide-react";
+import { ImageOff, Layers } from "lucide-react";
 import type { Item } from "@/lib/types";
 
 export function ItemCard({ item, quantityLabel }: { item: Item; quantityLabel?: string }) {
@@ -24,6 +24,11 @@ export function ItemCard({ item, quantityLabel }: { item: Item; quantityLabel?: 
           <div className="grid h-full place-items-center text-muted-foreground">
             <ImageOff className="size-8" />
           </div>
+        )}
+        {item.is_collection && (
+          <span className="absolute left-1.5 top-1.5 grid size-6 place-items-center rounded-sm bg-primary text-primary-foreground">
+            <Layers className="size-4" />
+          </span>
         )}
         {quantityLabel && (
           <span className="absolute right-1.5 top-1.5 rounded-sm bg-secondary px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground">

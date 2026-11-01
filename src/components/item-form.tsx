@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Camera, ImagePlus, Loader2, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +34,7 @@ export function ItemForm({
   const router = useRouter();
   const [boxId, setBoxId] = useState<number>(item?.box_id ?? defaultBoxId ?? boxes[0]?.id ?? 0);
   const [name, setName] = useState(item?.name ?? "");
+  const [isCollection, setIsCollection] = useState(item?.is_collection ?? false);
   const [quantity, setQuantity] = useState(item?.quantity?.toString() ?? "");
   const [ean, setEan] = useState(item?.ean ?? "");
   const [notes, setNotes] = useState(item?.notes ?? "");
@@ -78,11 +80,16 @@ export function ItemForm({
         .join("\n");
       const r = await api<Classification>("/api/classify", {
         method: "POST",
-        body: JSON.stringify({ photos, hint: hint || undefined, box_id: boxId || undefined }),
+        body: JSON.stringify({
+          photos,
+          hint: hint || undefined,
+          box_id: boxId || undefined,
+          collection: isCollection,
+        }),
       });
       setDescription(describeWithKeywords(t, r));
       if (!name.trim()) setName(r.name);
-      if (!quantity && r.quantity) setQuantity(String(r.quantity));
+      if (!isCollection && !quantity && r.quantity) setQuantity(String(r.quantity));
       toast.success(t("item.detect.done"));
     } catch (e) {
       toast.error(errorMessage(t, e));
@@ -99,7 +106,8 @@ export function ItemForm({
       const body = JSON.stringify({
         box_id: boxId,
         name,
-        quantity: quantity.trim() === "" ? null : Math.max(0, Math.round(Number(quantity))),
+        is_collection: isCollection,
+        quantity: isCollection || quantity.trim() === "" ? null : Math.max(0, Math.round(Number(quantity))),
         ean: ean.trim() || null,
         description,
         notes,
@@ -129,6 +137,18 @@ export function ItemForm({
           ))}
         </select>
       </div>
+
+      <label className="plate flex cursor-pointer items-start gap-3 p-3">
+        <Checkbox
+          checked={isCollection}
+          onCheckedChange={(c) => setIsCollection(c === true)}
+          className="mt-0.5 size-5"
+        />
+        <span className="space-y-0.5">
+          <span className="block font-semibold">{t("item.collection")}</span>
+          <span className="block text-sm text-muted-foreground">{t("item.collection.help")}</span>
+        </span>
+      </label>
 
       <div className="space-y-2">
         <Label>{t("item.photos")}</Label>
@@ -170,14 +190,16 @@ export function ItemForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="name">{t("item.name")}</Label>
-        <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t("item.namePlaceholder")} maxLength={200} className="h-11 text-base" />
+        <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t(isCollection ? "item.namePlaceholderCollection" : "item.namePlaceholder")} maxLength={200} className="h-11 text-base" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[8rem_1fr]">
-        <div className="space-y-1.5">
-          <Label htmlFor="qty">{t("item.quantity")}</Label>
-          <Input id="qty" type="number" inputMode="numeric" min={0} value={quantity} onChange={(e) => setQuantity(e.target.value)} className="h-11 text-base" />
-        </div>
+      <div className={isCollection ? "space-y-4" : "grid grid-cols-1 gap-4 sm:grid-cols-[8rem_1fr]"}>
+        {!isCollection && (
+          <div className="space-y-1.5">
+            <Label htmlFor="qty">{t("item.quantity")}</Label>
+            <Input id="qty" type="number" inputMode="numeric" min={0} value={quantity} onChange={(e) => setQuantity(e.target.value)} className="h-11 text-base" />
+          </div>
+        )}
         <div className="space-y-1.5">
           <Label htmlFor="ean">{t("item.ean")}</Label>
           <div className="flex gap-2">
@@ -195,7 +217,7 @@ export function ItemForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="desc">{t("item.description")}</Label>
-        <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={6} className="text-base" />
+        <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={isCollection ? 12 : 6} className="text-base" />
         <p className="text-xs text-muted-foreground">{t("item.description.help")}</p>
       </div>
 

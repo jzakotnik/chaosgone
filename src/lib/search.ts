@@ -72,6 +72,8 @@ function fieldsOf(item: Item): Field[] {
     { tokens: tokenize(item.description), weight: 1.5 },
     { tokens: normalize(item.ean ?? "").split(/\D+/).filter(Boolean), weight: 8 },
     { tokens: tokenize(String(item.quantity ?? "")), weight: 0.5 },
+    // so that "sammlung" / "sortiment" finds collections
+    { tokens: item.is_collection ? ["sammlung", "sortiment", "set"] : [], weight: 2 },
   ];
 }
 

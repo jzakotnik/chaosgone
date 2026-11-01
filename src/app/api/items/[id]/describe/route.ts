@@ -27,7 +27,7 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const hint = [
     `Name given by the owner: ${item.name}`,
-    item.quantity ? `Quantity: ${item.quantity}` : "",
+    !item.is_collection && item.quantity ? `Quantity: ${item.quantity}` : "",
     item.ean ? `EAN/barcode: ${item.ean}` : "",
     (b.data.notes ?? item.notes) && `Owner's notes: ${b.data.notes ?? item.notes}`,
     b.data.hint && `Extra hint: ${b.data.hint}`,
@@ -39,6 +39,7 @@ export async function POST(req: Request, { params }: Ctx) {
     const result = await classifyPhotos(item.photos, {
       locale: localeFrom(req),
       hint,
+      collection: item.is_collection,
       boxName: item.box_name,
     });
     return NextResponse.json(result);

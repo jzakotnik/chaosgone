@@ -2,7 +2,10 @@ import { db } from "./db";
 import { deletePhotoFiles } from "./photos";
 import type { Box, Item, ItemInput } from "./types";
 
-type ItemRow = Omit<Item, "photos"> & { photo_list: string | null };
+type ItemRow = Omit<Item, "photos" | "is_collection"> & {
+  photo_list: string | null;
+  is_collection: number;
+};
 
 const ITEM_SELECT = `
   SELECT i.*, b.name AS box_name,
@@ -12,7 +15,11 @@ const ITEM_SELECT = `
 
 function toItem(r: ItemRow): Item {
   const { photo_list, ...rest } = r;
-  return { ...rest, photos: photo_list ? photo_list.split(",") : [] };
+  return {
+    ...rest,
+    is_collection: Boolean(r.is_collection),
+    photos: photo_list ? photo_list.split(",") : [],
+  };
 }
 
 // ---- boxes ----
@@ -97,16 +104,17 @@ export function createItem(input: ItemInput): Item {
   const tx = db().transaction(() => {
     const r = db()
       .prepare(
-        `INSERT INTO items (box_id, name, quantity, ean, description, notes)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO items (box_id, name, quantity, ean, description, notes, is_collection)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         input.box_id,
         input.name.trim(),
-        input.quantity ?? null,
+        input.is_collection ? null : (input.quantity ?? null),
         cleanEan(input.ean),
         input.description ?? "",
         input.notes ?? "",
+        input.is_collection ? 1 : 0,
       );
     const id = Number(r.lastInsertRowid);
     writePhotos(id, input.photos ?? []);
@@ -121,20 +129,22 @@ export async function updateItem(
 ): Promise<Item | undefined> {
   const cur = getItem(id);
   if (!cur) return undefined;
+  const isCollection = input.is_collection ?? cur.is_collection;
   const removed = input.photos ? cur.photos.filter((p) => !input.photos!.includes(p)) : [];
   db().transaction(() => {
     db()
       .prepare(
         `UPDATE items SET box_id = ?, name = ?, quantity = ?, ean = ?, description = ?,
-         notes = ?, updated_at = datetime('now') WHERE id = ?`,
+         notes = ?, is_collection = ?, updated_at = datetime('now') WHERE id = ?`,
       )
       .run(
         input.box_id ?? cur.box_id,
         input.name?.trim() || cur.name,
-        input.quantity === undefined ? cur.quantity : input.quantity,
+        isCollection ? null : input.quantity === undefined ? cur.quantity : input.quantity,
         input.ean === undefined ? cur.ean : cleanEan(input.ean),
         input.description ?? cur.description,
         input.notes ?? cur.notes,
+        isCollection ? 1 : 0,
         id,
       );
     if (input.photos) {
