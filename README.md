@@ -369,6 +369,7 @@ src/lib/                 db, repo (data access), search, claude, photos, seo, i1
 src/messages/            de.json, en.json
 public/                  PWA icons, link-preview image
 docs/screenshots/        images used in this README
+website/                 static landing page for a public web server (see website/README.md)
 ecosystem.config.cjs     pm2 process file
 Dockerfile, docker-compose.yml
 ```

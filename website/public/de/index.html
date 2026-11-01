@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChaosGone – Kostenlose Open-Source-App für Ordnung im Keller</title>
+<meta name="description" content="Ordnung im Keller: Dinge fotografieren, von KI beschreiben lassen und in Sekunden wiederfinden. Kostenlos, Open Source, läuft auf dem Raspberry Pi.">
+<meta name="keywords" content="Keller Inventar App, Inventar zuhause, Kellerordnung, Lagerkisten organisieren, Selfhosting, Open Source, Raspberry Pi, Fotoerkennung, Claude API">
+<meta name="author" content="Jure Zakotnik">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#2b3138">
+<link rel="canonical" href="https://chaosgone.example/de/">
+<link rel="alternate" hreflang="en" href="https://chaosgone.example/">
+<link rel="alternate" hreflang="de" href="https://chaosgone.example/de/">
+<link rel="alternate" hreflang="x-default" href="https://chaosgone.example/">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ChaosGone">
+<meta property="og:locale" content="de_DE">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://chaosgone.example/de/">
+<meta property="og:title" content="ChaosGone – Kostenlose Open-Source-App für Ordnung im Keller">
+<meta property="og:description" content="Ordnung im Keller: Dinge fotografieren, von KI beschreiben lassen und in Sekunden wiederfinden. Kostenlos, Open Source, läuft auf dem Raspberry Pi.">
+<meta property="og:image" content="https://chaosgone.example/img/og-de.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ChaosGone – Ordnung im Keller">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ChaosGone – Kostenlose Open-Source-App für Ordnung im Keller">
+<meta name="twitter:description" content="Ordnung im Keller: Dinge fotografieren, von KI beschreiben lassen und in Sekunden wiederfinden. Kostenlos, Open Source, läuft auf dem Raspberry Pi.">
+<meta name="twitter:image" content="https://chaosgone.example/img/og-de.png">
+<link rel="preload" href="/fonts/stardos-stencil-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/css/site.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "SoftwareApplication", "@id": "https://chaosgone.example/#app", "name": "ChaosGone", "url": "https://chaosgone.example/de/", "description": "Kostenlose Open-Source-App fürs Kellerinventar: Dinge fotografieren, von KI beschreiben lassen und in Sekunden wiederfinden. Selbst gehostet auf dem Raspberry Pi.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Linux, Raspberry Pi OS, Docker", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}, "license": "https://opensource.org/licenses/MIT", "sameAs": ["https://github.com/jzakotnik/chaosgone"], "image": "https://chaosgone.example/img/og-de.png", "inLanguage": ["de", "en"], "author": {"@type": "Person", "name": "Jure Zakotnik"}}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Ist das wirklich kostenlos?", "acceptedAnswer": {"@type": "Answer", "text": "Ja. ChaosGone ist Open Source unter der MIT-Lizenz: kein Konto, kein Abo, keine Werbung. Kosten entstehen nur optional: Die Fotoerkennung nutzt die Claude-API mit deinem eigenen Schlüssel, und du zahlst Anthropic nur für die Nutzung."}}, {"@type": "Question", "name": "Was brauche ich zum Betrieb?", "acceptedAnswer": {"@type": "Answer", "text": "Einen Raspberry Pi mit 64-Bit-System, einen beliebigen Linux-Rechner oder Docker. Die Einrichtung sind ein paar Befehle mit pm2 oder Docker; das README führt dich durch."}}, {"@type": "Question", "name": "Verlassen meine Fotos mein Netz?", "acceptedAnswer": {"@type": "Answer", "text": "Die Fotos liegen auf deinem eigenen Rechner. Nur wenn du eine Claude-Funktion nutzt (Erkennen, Stapel-Import, Neu erzeugen), wird das verkleinerte Foto an die API von Anthropic geschickt. Die normale Suche ruft die API nie auf; die optionale KI-Suche schickt das Inventar als Text, ohne Fotos."}}, {"@type": "Question", "name": "Geht es auch ohne KI?", "acceptedAnswer": {"@type": "Answer", "text": "Ja. Du kannst Teile von Hand erfassen und durchsuchen. Nur Fotoerkennung und KI-Suche brauchen einen API-Schlüssel."}}, {"@type": "Question", "name": "Welche Sprachen gibt es?", "acceptedAnswer": {"@type": "Answer", "text": "Die Oberfläche gibt es auf Deutsch und Englisch, und Claude schreibt die Beschreibungen in der gewählten Sprache."}}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/de/" aria-label="ChaosGone Startseite"><img src="/icon-192.png" width="40" height="40" alt=""><span>ChaosGone</span></a>
+    <div class="header-actions">
+      <div class="lang" role="group" aria-label="Sprache">
+        <span aria-current="true">de</span><a href="/" hreflang="en" lang="en">en</a>
+      </div>
+      <a class="btn btn--sm btn--ghost" href="https://github.com/jzakotnik/chaosgone" aria-label="GitHub"><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#github"/></svg><span class="gh-label">GitHub</span></a>
+    </div>
+  </div>
+  <div class="hazard"></div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <ul class="badges"><li>Kostenlos</li><li>Open Source (MIT)</li><li>Läuft auf dem Raspberry Pi</li></ul>
+        <h1>Schluss mit Suchen im <em>Keller</em>.</h1>
+        <p class="lead">ChaosGone ist eine kostenlose Open-Source-App fürs Kellerinventar. Dinge fotografieren, von KI beschreiben lassen und in Sekunden wiederfinden.</p>
+        <div class="cta">
+          <a class="btn" href="https://github.com/jzakotnik/chaosgone"><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#github"/></svg>Auf GitHub ansehen</a>
+          <a class="btn btn--ghost" href="#how">So funktioniert's<svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#arrow"/></svg></a>
+        </div>
+      </div>
+      <div class="phones"><figure class="phone"><img src="/img/app-search.webp" width="520" height="1067" alt="Suchergebnisse für „schraube“ in der ChaosGone-App" loading="eager"></figure><figure class="phone"><img src="/img/app-home.webp" width="520" height="1067" alt="Startseite der ChaosGone-App mit bunten Kisten-Kacheln" fetchpriority="high"></figure><figure class="phone"><img src="/img/app-collection.webp" width="520" height="1067" alt="Eine Sammlung aus Dübeln und Schrauben mit Inhaltsliste" loading="eager"></figure></div>
+    </div>
+  </section>
+
+  <section class="problem" aria-labelledby="problem">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">Das Problem</p>
+        <h2 id="problem">Du hast es. Du <em>findest</em> es nur nicht.</h2>
+        <p>Der 8-mm-Bohrer, der Fahrradschlauch, die Ersatzbirnen: irgendwo im Keller. Nach einer Stunde Kistenwühlen kaufst du es neu. Schon wieder.</p>
+      </div>
+      <ul class="pains"><li><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#cart"/></svg><strong>Doppelt gekauft</strong><span>Dinge, die du längst besitzt, aber nicht gefunden hast.</span></li><li><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#clock"/></svg><strong>Eine Stunde weg</strong><span>Kisten durchwühlen für etwas, das eine Minute dauert.</span></li><li><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#boxes"/></svg><strong>Kein Überblick</strong><span>Niemand weiß, was in welcher Kiste liegt. Du auch nicht.</span></li></ul>
+    </div>
+  </section>
+
+  <section id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <div class="section-head"><p class="kicker">So funktioniert's</p><h2 id="how-h">Drei Schritte. Keine Tabelle.</h2></div>
+      <ol class="steps"><li class="step"><span class="num" aria-hidden="true">1</span><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#camera"/></svg><h3>Fotografieren</h3><p>Jedes Teil mit dem Handy knipsen, oder eine ganze Dose Dübel als Sammlung. Hunderte Fotos? Alle in einem Rutsch importieren.</p></li><li class="step"><span class="num" aria-hidden="true">2</span><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#sparkles"/></svg><h3>KI beschreibt</h3><p>Claude schreibt Namen, Beschreibung und Inhaltsliste. Du prüfst und korrigierst, wann du magst.</p></li><li class="step"><span class="num" aria-hidden="true">3</span><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#search"/></svg><h3>In Sekunden finden</h3><p>Ein Suchfeld. Tippfehler, Mehrzahl und halbe Wörter sind kein Problem, auf Deutsch und Englisch.</p></li></ol>
+    </div>
+  </section>
+
+  <section id="features" class="tight" aria-labelledby="features-h">
+    <div class="wrap">
+      <div class="section-head"><p class="kicker">Funktionen</p><h2 id="features-h">Gebaut für einen echten Keller</h2></div>
+      <ul class="tiles"><li class="tile t-orange"><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#grid"/></svg><h3>Kisten-Kacheln</h3><p>Eine Handvoll großer Kacheln für den Daumen: Fahrrad, Werkzeug, Sport.</p></li><li class="tile t-yellow"><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#search"/></svg><h3>Clevere Suche</h3><p>Fehlertolerant und deutschsprachig. Kostenlos und lokal; Claude nur, wenn du willst.</p></li><li class="tile t-steel"><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#layers"/></svg><h3>Sammlungen</h3><p>Sortimente werden zu Listen: Dübel, Schrauben und Scheiben nach Sorte.</p></li><li class="tile t-blue"><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#images"/></svg><h3>Stapel-Import</h3><p>Hunderte Fotos auf einmal. Die Ergebnisse prüfst du in deinem Tempo.</p></li><li class="tile t-green"><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#barcode"/></svg><h3>Barcode-Scan</h3><p>EAN-Codes mit der Handykamera scannen.</p></li><li class="tile t-red"><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#home"/></svg><h3>Deine Daten</h3><p>Eine SQLite-Datei und ein Fotoordner bei dir zu Hause. Kein Konto, kein Lock-in.</p></li></ul>
+    </div>
+  </section>
+
+  <section class="oss" id="open-source" aria-labelledby="oss-h">
+    <div class="wrap">
+      <div>
+        <p class="kicker">Kostenlos &amp; Open Source</p>
+        <h2 id="oss-h">Läuft auf dem Raspberry Pi. Kostet nichts.</h2>
+        <ul class="checks"><li><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#check"/></svg><span>MIT-Lizenz: nutzen, ändern, weitergeben.</span></li><li><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#check"/></svg><span>Kein Konto, kein Abo, kein Tracking.</span></li><li><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#check"/></svg><span>Läuft auf dem Raspberry Pi, jedem Linux-Rechner oder in Docker.</span></li><li><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#check"/></svg><span>Deine Daten sind eine SQLite-Datei plus ein Fotoordner: ein einfaches Kopieren genügt als Backup.</span></li><li><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#check"/></svg><span>Die optionalen KI-Funktionen nutzen deinen eigenen Claude-API-Schlüssel. Du zahlst nur, was du verbrauchst.</span></li></ul>
+      </div>
+      <div>
+        <p class="terminal-title">Auf dem Pi installieren</p>
+        <pre><code><span class="p">$</span> git clone https://github.com/jzakotnik/chaosgone.git
+<span class="p">$</span> cd chaosgone &amp;&amp; npm install
+<span class="p">$</span> cp .env.example .env.local  <span class="c"># API-Schlüssel eintragen</span>
+<span class="p">$</span> npm run build &amp;&amp; pm2 start ecosystem.config.cjs
+<span class="c"># danach http://raspihome:3500 öffnen</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" aria-labelledby="faq-h">
+    <div class="wrap">
+      <div class="section-head"><p class="kicker">FAQ</p><h2 id="faq-h">Gut zu wissen</h2></div>
+      <div class="faq"><details><summary>Ist das wirklich kostenlos?</summary><p>Ja. ChaosGone ist Open Source unter der MIT-Lizenz: kein Konto, kein Abo, keine Werbung. Kosten entstehen nur optional: Die Fotoerkennung nutzt die Claude-API mit deinem eigenen Schlüssel, und du zahlst Anthropic nur für die Nutzung.</p></details><details><summary>Was brauche ich zum Betrieb?</summary><p>Einen Raspberry Pi mit 64-Bit-System, einen beliebigen Linux-Rechner oder Docker. Die Einrichtung sind ein paar Befehle mit pm2 oder Docker; das README führt dich durch.</p></details><details><summary>Verlassen meine Fotos mein Netz?</summary><p>Die Fotos liegen auf deinem eigenen Rechner. Nur wenn du eine Claude-Funktion nutzt (Erkennen, Stapel-Import, Neu erzeugen), wird das verkleinerte Foto an die API von Anthropic geschickt. Die normale Suche ruft die API nie auf; die optionale KI-Suche schickt das Inventar als Text, ohne Fotos.</p></details><details><summary>Geht es auch ohne KI?</summary><p>Ja. Du kannst Teile von Hand erfassen und durchsuchen. Nur Fotoerkennung und KI-Suche brauchen einen API-Schlüssel.</p></details><details><summary>Welche Sprachen gibt es?</summary><p>Die Oberfläche gibt es auf Deutsch und Englisch, und Claude schreibt die Beschreibungen in der gewählten Sprache.</p></details></div>
+    </div>
+  </section>
+
+  <section class="final tight" aria-labelledby="final-h">
+    <div class="wrap">
+      <h2 id="final-h">Zähme das Kellerchaos.</h2>
+      <p>Hol dir den Code, setz ihn auf einen Raspberry Pi und weißt endlich, wo alles liegt.</p>
+      <div class="cta">
+        <a class="btn" href="https://github.com/jzakotnik/chaosgone"><svg class="icon" aria-hidden="true" focusable="false"><use href="/img/icons.svg#github"/></svg>Auf GitHub ansehen</a>
+        <a class="btn btn--ghost" href="https://github.com/jzakotnik/chaosgone#readme">Dokumentation lesen</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="hazard"></div>
+  <div class="wrap">
+    <div>
+      <p>ChaosGone ist kostenlos und Open Source unter der MIT-Lizenz.</p>
+      <small>ChaosGone ist ein unabhängiges Projekt und steht in keiner Verbindung zu Anthropic. Claude ist eine Marke von Anthropic.</small>
+    </div>
+    <nav aria-label="Footer"><a href="https://github.com/jzakotnik/chaosgone">Quellcode</a><a href="https://github.com/jzakotnik/chaosgone/issues">Problem melden</a><a href="https://github.com/jzakotnik/chaosgone#readme">Dokumentation</a><a href="/" hreflang="en" lang="en">English</a></nav>
+  </div>
+</footer>
+</body>
+</html>
