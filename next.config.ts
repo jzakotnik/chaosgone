@@ -1,17 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
-  },
+  // Native modules must not be bundled.
+  serverExternalPackages: ["better-sqlite3", "sharp"],
+  output: "standalone",
 };
 
 export default nextConfig;
