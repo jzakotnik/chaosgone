@@ -80,7 +80,12 @@ const CLASSIFY_SCHEMA = {
 
 export async function classifyPhotos(
   filenames: string[],
-  opts: { locale: string; hint?: string; boxName?: string },
+  opts: {
+    locale: string;
+    /** What the owner already knows (name, own notes, extra hint). Treated as reliable. */
+    hint?: string;
+    boxName?: string;
+  },
 ): Promise<Classification> {
   const lang = LANG[opts.locale] ?? "German";
   const images: Anthropic.ContentBlockParam[] = [];
@@ -92,7 +97,9 @@ export async function classifyPhotos(
   }
   const context = [
     opts.boxName ? `The item is stored in the box "${opts.boxName}".` : "",
-    opts.hint ? `The owner's own note: "${opts.hint}".` : "",
+    opts.hint
+      ? `The owner knows this about the item (treat it as reliable; if it conflicts with the photo, trust the owner and mention the doubt): """${opts.hint}"""`
+      : "",
   ]
     .filter(Boolean)
     .join(" ");

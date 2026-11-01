@@ -2,13 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ClaudeError } from "./claude";
 
-export const LOCALES = ["de", "en"] as const;
-export type Locale = (typeof LOCALES)[number];
-export const DEFAULT_LOCALE: Locale = "de";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "./locales";
 
 export function localeFrom(req: Request): Locale {
   const m = /(?:^|;\s*)locale=(\w+)/.exec(req.headers.get("cookie") ?? "");
-  return LOCALES.includes(m?.[1] as Locale) ? (m![1] as Locale) : DEFAULT_LOCALE;
+  return isLocale(m?.[1]) ? m[1] : DEFAULT_LOCALE;
 }
 
 export function err(status: number, code: string, message?: string) {

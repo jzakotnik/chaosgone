@@ -7,7 +7,7 @@ import { body, claudeErr, err, localeFrom, photoName } from "@/lib/http";
 
 const schema = z.object({
   photos: z.array(photoName).min(1).max(4),
-  hint: z.string().max(300).optional(),
+  hint: z.string().max(2000).optional(),
   box_id: z.number().int().positive().optional(),
 });
 
