@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import convertHeic from "heic-convert";
 import sharp from "sharp";
 import { PHOTO_DIR, THUMB_DIR } from "./config";
 
@@ -15,8 +16,21 @@ export function photoPath(name: string, thumb = false): string {
   return path.join(thumb ? THUMB_DIR : PHOTO_DIR, name);
 }
 
-/** Normalises orientation, downsizes and stores a photo plus thumbnail. */
-export async function savePhoto(input: Buffer): Promise<string> {
+const HEIC_BRANDS = ["heic", "heix", "hevc", "hevx", "heim", "heis", "mif1", "msf1"];
+
+/** iPhone HEIC/HEIF? (ISO-BMFF `ftyp` box with a HEVC-style brand; AVIF is handled by sharp.) */
+export function isHeic(buf: Buffer): boolean {
+  return buf.length > 12 && buf.toString("latin1", 4, 8) === "ftyp" &&
+    HEIC_BRANDS.includes(buf.toString("latin1", 8, 12));
+}
+
+/** Normalises orientation, downsizes and stores a photo plus thumbnail. HEIC is converted first. */
+export async function savePhoto(original: Buffer): Promise<string> {
+  // sharp's prebuilt libvips cannot decode HEVC-based HEIC, so convert it to JPEG first.
+  const input = isHeic(original)
+    ? Buffer.from(await convertHeic({ buffer: original, format: "JPEG", quality: 0.92 }))
+    : original;
+  await fs.mkdir(THUMB_DIR, { recursive: true }); // also creates PHOTO_DIR
   const name = `${randomUUID()}.jpg`;
   const base = sharp(input, { failOn: "none" }).rotate();
   await base

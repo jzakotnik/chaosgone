@@ -55,6 +55,11 @@ The app has **no login**. Keep it on your LAN and do not expose it to the intern
 
 Copy the whole `DATA_DIR` (database + photos).
 
+### Photo formats
+
+JPEG, PNG, WebP, AVIF and iPhone **HEIC/HEIF** are accepted. Everything is converted to JPEG (max. 1600 px)
+on upload, so the stored photos are small and Claude gets a compact image.
+
 ### Barcode scanning
 
 Uses the browser's `BarcodeDetector` API (Chrome/Edge on Android and desktop). Where it is missing
@@ -67,6 +72,6 @@ npm run lint
 npx tsc --noEmit
 ```
 
-- Next.js (App Router), Tailwind, shadcn/ui, `better-sqlite3`, `sharp`, `@anthropic-ai/sdk`
+- Next.js (App Router), Tailwind, shadcn/ui, `better-sqlite3`, `sharp` (+ `heic-convert` for HEIC), `@anthropic-ai/sdk`
 - Translations: `src/messages/de.json`, `src/messages/en.json` (the compiler checks both have the same keys)
 - API routes: `src/app/api/**` · data access: `src/lib/repo.ts` · search: `src/lib/search.ts` · Claude: `src/lib/claude.ts`
