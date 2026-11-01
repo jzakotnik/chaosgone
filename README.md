@@ -57,12 +57,38 @@ chaos.home.lan {
 
 The app has **no login**. Keep it on your LAN and do not expose it to the internet.
 
+### Run with pm2
+
+`ecosystem.config.cjs` starts the app as `chaosgone` on port **3500** (one process only: SQLite is a single-file
+database). Settings and the API key live in `.env.local`, which `next start` loads by itself.
+
+First time:
+
+```bash
+cd ~/chaosgone
+npm install
+cp .env.example .env.local   # then set ANTHROPIC_API_KEY (and CLAUDE_MODEL if you like)
+npm run build
+pm2 start ecosystem.config.cjs
+pm2 save                     # remember the process list across reboots
+```
+
+Update to a new version:
+
+```bash
+git pull && npm install && npm run build && pm2 restart chaosgone --update-env
+```
+
+Useful: `pm2 logs chaosgone`, `pm2 restart chaosgone`, `pm2 stop chaosgone`. To start at boot, run `pm2 startup` once
+and execute the command it prints. If `npm run build` is killed on a small Pi (out of memory), add swap
+space or build on another machine of the same architecture and copy the `.next` folder.
+
 ### Raspberry Pi / plain `http://` on your LAN
 
 - **CORS: nothing to configure.** The UI and the API are served from the same origin
   (e.g. `http://raspihome:3500`), so uploads are ordinary same-origin requests. The API sends no CORS
   headers, so pages from other origins cannot call it.
-- **Port:** `PORT=3500 npm start`, or with Docker `PORT=3500 docker compose up -d` (maps host port 3500).
+- **Port:** pm2 uses 3500 (see above). `npm start -- -p 3500` works too; with Docker `PORT=3500 docker compose up -d` maps host port 3500.
   Open the port in the Pi's firewall if you use one.
 - **What does not work over plain `http://` (except on `localhost`):** the barcode camera (browsers expose
   `getUserMedia` only on secure origins; the app says so when you tap *Scan*) and full PWA installation.
