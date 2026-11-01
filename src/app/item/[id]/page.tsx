@@ -8,6 +8,23 @@ import { ReviewBar } from "@/components/review-bar";
 import { buttonVariants } from "@/components/ui/button";
 import { getT } from "@/lib/i18n";
 import { getItem } from "@/lib/repo";
+import { pageMetadata, summarize } from "@/lib/seo";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: PageProps<"/item/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const item = Number.isInteger(Number(id)) ? getItem(Number(id)) : undefined;
+  if (!item) return {};
+  const { t, locale } = await getT();
+  return pageMetadata({
+    t,
+    locale,
+    title: item.name,
+    description: summarize(item.description) || `${item.box_name} · ${t("app.tagline")}`,
+    image: item.photos[0] ? `/api/photos/${item.photos[0]}` : undefined,
+    path: `/item/${item.id}`,
+  });
+}
 
 export default async function ItemPage({ params, searchParams }: PageProps<"/item/[id]">) {
   const { id } = await params;

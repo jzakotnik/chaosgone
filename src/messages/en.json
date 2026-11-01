@@ -133,5 +133,7 @@
   "review.start": "Start review",
   "review.markReviewed": "Reviewed",
   "review.next": "Reviewed, next",
-  "review.finished": "Everything reviewed."
+  "review.finished": "Everything reviewed.",
+  "meta.description": "Order in the basement: photograph things, let Claude identify them, sort them into boxes and find them again in seconds.",
+  "meta.imageAlt": "ChaosGone – order in the basement"
 }
