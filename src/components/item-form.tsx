@@ -107,6 +107,7 @@ export function ItemForm({
         box_id: boxId,
         name,
         is_collection: isCollection,
+        needs_review: false, // saving the form counts as a review
         quantity: isCollection || quantity.trim() === "" ? null : Math.max(0, Math.round(Number(quantity))),
         ean: ean.trim() || null,
         description,

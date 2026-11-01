@@ -18,6 +18,8 @@ export type Item = {
   notes: string;
   /** A set of different small things kept together (e.g. assorted dowels and screws). */
   is_collection: boolean;
+  /** Created by batch import and not looked at by a human yet. */
+  needs_review: boolean;
   created_at: string;
   updated_at: string;
   photos: string[];
@@ -31,5 +33,6 @@ export type ItemInput = {
   description?: string;
   notes?: string;
   is_collection?: boolean;
+  needs_review?: boolean;
   photos?: string[];
 };

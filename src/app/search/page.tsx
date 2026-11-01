@@ -27,6 +27,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
                 <ItemCard
                   key={item.id}
                   item={item}
+                  reviewLabel={t("review.badge")}
                   quantityLabel={item.quantity ? `×${item.quantity}` : undefined}
                 />
               ))}

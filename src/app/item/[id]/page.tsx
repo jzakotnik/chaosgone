@@ -4,12 +4,14 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Layers, Pencil, ScanBarcode } from "lucide-react";
 import { DescriptionText } from "@/components/description-text";
 import { ItemActions } from "@/components/item-actions";
+import { ReviewBar } from "@/components/review-bar";
 import { buttonVariants } from "@/components/ui/button";
 import { getT } from "@/lib/i18n";
 import { getItem } from "@/lib/repo";
 
-export default async function ItemPage({ params }: PageProps<"/item/[id]">) {
+export default async function ItemPage({ params, searchParams }: PageProps<"/item/[id]">) {
   const { id } = await params;
+  const flow = (await searchParams).review === "1";
   const item = Number.isInteger(Number(id)) ? getItem(Number(id)) : undefined;
   if (!item) notFound();
   const { t, locale } = await getT();
@@ -24,6 +26,8 @@ export default async function ItemPage({ params }: PageProps<"/item/[id]">) {
       >
         <ArrowLeft className="size-4" /> {item.box_name}
       </Link>
+
+      {item.needs_review && <ReviewBar itemId={item.id} flow={flow} />}
 
       {item.photos.length > 0 && (
         <div className="grid grid-cols-2 gap-2">

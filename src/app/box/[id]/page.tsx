@@ -39,6 +39,7 @@ export default async function BoxPage({ params }: PageProps<"/box/[id]">) {
             <ItemCard
               key={i.id}
               item={i}
+              reviewLabel={t("review.badge")}
               quantityLabel={i.quantity ? `×${i.quantity}` : undefined}
             />
           ))}
