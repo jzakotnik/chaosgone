@@ -54,6 +54,26 @@ chaos.home.lan {
 
 The app has **no login**. Keep it on your LAN and do not expose it to the internet.
 
+### Raspberry Pi / plain `http://` on your LAN
+
+- **CORS: nothing to configure.** The UI and the API are served from the same origin
+  (e.g. `http://raspihome:3500`), so uploads are ordinary same-origin requests. The API sends no CORS
+  headers, so pages from other origins cannot call it.
+- **Port:** `PORT=3500 npm start`, or with Docker `PORT=3500 docker compose up -d` (maps host port 3500).
+  Open the port in the Pi's firewall if you use one.
+- **What does not work over plain `http://` (except on `localhost`):** the barcode camera (browsers expose
+  `getUserMedia` only on secure origins; the app says so when you tap *Scan*) and full PWA installation.
+  Photo upload is not affected: *Take photo* / *From gallery* use the phone's own camera/file picker.
+  To get the barcode scanner, serve HTTPS (Caddy `tls internal`, then trust its root certificate on the phone),
+  or use Tailscale's HTTPS certificates. On Android you can also whitelist the origin in
+  `chrome://flags/#unsafely-treat-insecure-origin-as-secure`.
+- **Host name:** `raspihome` must resolve on every device (router DNS or `raspihome.local`); otherwise use the IP.
+- **Run the production build** (`npm run build && npm start`). `next dev` additionally blocks requests from
+  other hosts unless you set `allowedDevOrigins`.
+- **Photos:** JPEG is fast to process. A 12 MP iPhone **HEIC** is converted in pure JavaScript and took about
+  13 s on a 4-core x86 machine, so expect much longer on a Pi. For batches, set the iPhone to
+  *Settings → Camera → Formats → Most Compatible* (JPEG). Use a 64-bit Raspberry Pi OS (prebuilt native modules).
+
 ### Backup
 
 Copy the whole `DATA_DIR` (database + photos).

@@ -20,7 +20,7 @@ export function BarcodeScanner({ onDetect }: { onDetect: (value: string) => void
   const t = useT();
   const [open, setOpen] = useState(false);
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
-  const [problem, setProblem] = useState<"unsupported" | "denied" | null>(null);
+  const [problem, setProblem] = useState<"unsupported" | "insecure" | "denied" | null>(null);
 
   useEffect(() => {
     if (!open || !video) return;
@@ -62,7 +62,15 @@ export function BarcodeScanner({ onDetect }: { onDetect: (value: string) => void
   return (
     <>
       <Button type="button" variant="outline" className="h-11" onClick={() => {
-          setProblem(detectorCtor() ? null : "unsupported");
+          // Browsers only expose the camera on https:// or localhost; on plain http://host
+          // navigator.mediaDevices is missing entirely.
+          setProblem(
+            !window.isSecureContext || !navigator.mediaDevices
+              ? "insecure"
+              : detectorCtor()
+                ? null
+                : "unsupported",
+          );
           setOpen(true);
         }}
       >
@@ -76,7 +84,7 @@ export function BarcodeScanner({ onDetect }: { onDetect: (value: string) => void
           </DialogHeader>
           {problem ? (
             <p className="rounded-sm bg-destructive/10 p-3 text-sm text-destructive">
-              {t(problem === "unsupported" ? "item.scan.unsupported" : "item.scan.denied")}
+              {t(`item.scan.${problem}`)}
             </p>
           ) : (
             <video

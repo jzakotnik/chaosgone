@@ -98,5 +98,6 @@
   "item.collection.help": "z. B. Dübel und Schrauben in einer Dose. Claude listet dann die verschiedenen Elemente auf dem Foto auf.",
   "item.collection.badge": "Sammlung",
   "item.namePlaceholderCollection": "z. B. Sortiment Dübel und Schrauben",
-  "item.contents": "Inhalt"
+  "item.contents": "Inhalt",
+  "item.scan.insecure": "Die Kamera ist über http:// gesperrt. Öffne die App über https:// (siehe README) oder tippe die Nummer ein."
 }
