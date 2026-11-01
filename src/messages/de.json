@@ -133,5 +133,7 @@
   "review.start": "Prüfung starten",
   "review.markReviewed": "Geprüft",
   "review.next": "Geprüft, weiter",
-  "review.finished": "Alles geprüft."
+  "review.finished": "Alles geprüft.",
+  "meta.description": "Ordnung im Keller: Teile fotografieren, von Claude erkennen lassen, in Kisten sortieren und blitzschnell wiederfinden.",
+  "meta.imageAlt": "ChaosGone – Ordnung im Keller"
 }

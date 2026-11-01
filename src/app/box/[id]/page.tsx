@@ -7,6 +7,22 @@ import { ItemCard } from "@/components/item-card";
 import { getT } from "@/lib/i18n";
 import { BoxIcon, boxTone } from "@/lib/box-style";
 import { getBox, listItems } from "@/lib/repo";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: PageProps<"/box/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const box = Number.isInteger(Number(id)) ? getBox(Number(id)) : undefined;
+  if (!box) return {};
+  const { t, locale } = await getT();
+  return pageMetadata({
+    t,
+    locale,
+    title: box.name,
+    description: `${box.name}: ${t("box.items", { count: box.item_count ?? 0 })}`,
+    path: `/box/${box.id}`,
+  });
+}
 
 export default async function BoxPage({ params }: PageProps<"/box/[id]">) {
   const { id } = await params;

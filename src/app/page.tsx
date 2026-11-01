@@ -16,7 +16,7 @@ export default async function Home() {
     <div className="space-y-6 pb-20">
       <SearchBar />
       <div className="flex flex-wrap gap-2">
-        <Link href="/batch" className={buttonVariants({ variant: "outline", className: "h-10" })}>
+        <Link href="/batch" className={buttonVariants({ variant: "outline", className: "h-10 border-2 border-input bg-card" })}>
           <Images /> {t("nav.batch")}
         </Link>
         {toReview > 0 && (

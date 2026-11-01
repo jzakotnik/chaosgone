@@ -4,7 +4,8 @@ import "./globals.css";
 import { I18nProvider } from "@/components/i18n-provider";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
-import { getLocale } from "@/lib/i18n";
+import { getLocale, getT } from "@/lib/i18n";
+import { pageMetadata, siteUrl, SITE_NAME } from "@/lib/seo";
 import { MESSAGES } from "@/lib/messages";
 
 const sans = Barlow({ variable: "--font-sans", subsets: ["latin"], weight: ["400", "500", "600"] });
@@ -15,11 +16,20 @@ const heading = Barlow_Condensed({
 });
 const stencil = Stardos_Stencil({ variable: "--font-stencil", subsets: ["latin"], weight: ["700"] });
 
-export const metadata: Metadata = {
-  title: "ChaosGone",
-  description: "Basement inventory with photo recognition",
-  appleWebApp: { capable: true, title: "ChaosGone" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t, locale } = await getT();
+  const base = pageMetadata({ t, locale });
+  return {
+    ...base,
+    metadataBase: await siteUrl(),
+    applicationName: SITE_NAME,
+    title: { default: `${SITE_NAME} – ${t("app.tagline")}`, template: `%s · ${SITE_NAME}` },
+    appleWebApp: { capable: true, title: SITE_NAME },
+    formatDetection: { telephone: false },
+    // A private household tool without login: keep it out of search engines.
+    robots: { index: false, follow: false },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#2b3138",
