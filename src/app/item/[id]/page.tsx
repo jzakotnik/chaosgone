@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Pencil, ScanBarcode } from "lucide-react";
+import { ArrowLeft, Layers, Pencil, ScanBarcode } from "lucide-react";
+import { DescriptionText } from "@/components/description-text";
 import { ItemActions } from "@/components/item-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { getT } from "@/lib/i18n";
@@ -54,7 +55,12 @@ export default async function ItemPage({ params }: PageProps<"/item/[id]">) {
           <Link href={`/box/${item.box_id}`} className="rounded-sm bg-secondary px-2 py-1 font-semibold text-secondary-foreground">
             {item.box_name}
           </Link>
-          {item.quantity !== null && (
+          {item.is_collection && (
+            <span className="inline-flex items-center gap-1 rounded-sm bg-primary px-2 py-1 font-semibold text-primary-foreground">
+              <Layers className="size-4" /> {t("item.collection.badge")}
+            </span>
+          )}
+          {!item.is_collection && item.quantity !== null && (
             <span className="rounded-sm bg-accent px-2 py-1 font-semibold text-accent-foreground">
               {t("item.quantityValue", { count: item.quantity })}
             </span>
@@ -68,9 +74,11 @@ export default async function ItemPage({ params }: PageProps<"/item/[id]">) {
       </div>
 
       <section className="plate space-y-3 p-4">
-        <p className="whitespace-pre-line leading-relaxed">
-          {item.description || <span className="text-muted-foreground">{t("item.noDescription")}</span>}
-        </p>
+        {item.description ? (
+          <DescriptionText text={item.description} />
+        ) : (
+          <p className="text-muted-foreground">{t("item.noDescription")}</p>
+        )}
         {item.notes && (
           <div className="border-t border-border pt-3">
             <h2 className="text-sm font-bold text-muted-foreground">{t("item.notes")}</h2>

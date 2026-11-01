@@ -16,6 +16,8 @@ export type Item = {
   ean: string | null;
   description: string;
   notes: string;
+  /** A set of different small things kept together (e.g. assorted dowels and screws). */
+  is_collection: boolean;
   created_at: string;
   updated_at: string;
   photos: string[];
@@ -28,5 +30,6 @@ export type ItemInput = {
   ean?: string | null;
   description?: string;
   notes?: string;
+  is_collection?: boolean;
   photos?: string[];
 };

@@ -93,5 +93,10 @@
   "err.no_photos": "Dieses Teil hat kein Foto.",
   "item.keywords": "Stichwörter",
   "item.deleteConfirm": "Wirklich löschen",
-  "item.photoAlt": "Foto {n} von {name}"
+  "item.photoAlt": "Foto {n} von {name}",
+  "item.collection": "Sammlung aus mehreren Teilen",
+  "item.collection.help": "z. B. Dübel und Schrauben in einer Dose. Claude listet dann die verschiedenen Elemente auf dem Foto auf.",
+  "item.collection.badge": "Sammlung",
+  "item.namePlaceholderCollection": "z. B. Sortiment Dübel und Schrauben",
+  "item.contents": "Inhalt"
 }

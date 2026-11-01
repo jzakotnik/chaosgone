@@ -93,5 +93,10 @@
   "err.no_photos": "This item has no photo.",
   "item.keywords": "Keywords",
   "item.deleteConfirm": "Really delete",
-  "item.photoAlt": "Photo {n} of {name}"
+  "item.photoAlt": "Photo {n} of {name}",
+  "item.collection": "Collection of several parts",
+  "item.collection.help": "e.g. dowels and screws in one tin. Claude then lists the different elements it sees in the photo.",
+  "item.collection.badge": "Collection",
+  "item.namePlaceholderCollection": "e.g. Assorted dowels and screws",
+  "item.contents": "Contents"
 }

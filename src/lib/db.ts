@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS items (
   ean         TEXT,
   description TEXT NOT NULL DEFAULT '',
   notes       TEXT NOT NULL DEFAULT '',
+  is_collection INTEGER NOT NULL DEFAULT 0,
   created_at  TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -31,6 +32,14 @@ CREATE TABLE IF NOT EXISTS item_photos (
 CREATE INDEX IF NOT EXISTS idx_photos_item ON item_photos(item_id);
 `;
 
+/** Adds columns introduced after the first release to databases created earlier. */
+function migrate(d: Database.Database) {
+  const cols = d.prepare("PRAGMA table_info(items)").all() as { name: string }[];
+  if (!cols.some((c) => c.name === "is_collection")) {
+    d.exec("ALTER TABLE items ADD COLUMN is_collection INTEGER NOT NULL DEFAULT 0");
+  }
+}
+
 const g = globalThis as unknown as { __chaosDb?: Database.Database };
 
 export function db(): Database.Database {
@@ -42,6 +51,7 @@ export function db(): Database.Database {
     d.pragma("journal_mode = WAL");
     d.pragma("foreign_keys = ON");
     d.exec(SCHEMA);
+    migrate(d);
     g.__chaosDb = d;
   }
   return g.__chaosDb;
