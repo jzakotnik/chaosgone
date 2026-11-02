@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generates website/public/index.html (English) and website/public/de/index.html (German) from one template.
 
-The generated HTML is committed. Run this to set your real domain or after changing the copy:
+The generated HTML is committed. Run this after changing the copy or to use another domain:
     python3 website/tools/generate.py https://your-domain.tld
 """
 import json
@@ -10,8 +10,12 @@ from datetime import date
 from pathlib import Path
 
 # Public base URL used in canonical links, hreflang, Open Graph and the sitemap.
-# Usage: python3 website/tools/generate.py https://your-domain.tld
-DOMAIN = (sys.argv[1] if len(sys.argv) > 1 else "https://chaosgone.example").rstrip("/")
+# Usage: python3 website/tools/generate.py [https://your-domain.tld] [--legal]
+#   --legal  adds footer links to /impressum.html and /datenschutz.html (see website/README.md)
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+LEGAL = "--legal" in sys.argv
+DOMAIN = (ARGS[0] if ARGS else "https://chaosgone.de").rstrip("/")
+KOFI = "https://ko-fi.com/jzakotnik"
 REPO = "https://github.com/jzakotnik/chaosgone"
 OUT = Path(__file__).resolve().parent.parent / "public"
 LASTMOD = date.today().isoformat()
@@ -60,6 +64,7 @@ COPY = {
                 ("Which languages does it speak?", "The interface is in German and English, and Claude writes descriptions in the language you selected.")],
         "fin_h2": "Tame your basement chaos.", "fin_text": "Grab the code, put it on a Raspberry Pi and finally know where everything is.",
         "fin_docs": "Read the docs",
+        "coffee": "Like it? Buy me a coffee on",
         "foot": "ChaosGone is free and open source under the MIT licence.", "foot_nav": [("Source code", REPO), ("Report an issue", REPO + "/issues"), ("Documentation", REPO + "#readme")],
         "disclaimer": "ChaosGone is an independent project and is not affiliated with or endorsed by Anthropic. Claude is a trademark of Anthropic.",
         "app_desc": "Free, open-source basement inventory app: photograph your things, let AI describe them and find anything in seconds. Self-hosted on a Raspberry Pi.",
@@ -107,6 +112,7 @@ COPY = {
                 ("Welche Sprachen gibt es?", "Die Oberfläche gibt es auf Deutsch und Englisch, und Claude schreibt die Beschreibungen in der gewählten Sprache.")],
         "fin_h2": "Zähme das Kellerchaos.", "fin_text": "Hol dir den Code, setz ihn auf einen Raspberry Pi und weißt endlich, wo alles liegt.",
         "fin_docs": "Dokumentation lesen",
+        "coffee": "Gefällt dir ChaosGone? Spendier mir einen Kaffee auf",
         "foot": "ChaosGone ist kostenlos und Open Source unter der MIT-Lizenz.", "foot_nav": [("Quellcode", REPO), ("Problem melden", REPO + "/issues"), ("Dokumentation", REPO + "#readme")],
         "disclaimer": "ChaosGone ist ein unabhängiges Projekt und steht in keiner Verbindung zu Anthropic. Claude ist eine Marke von Anthropic.",
         "app_desc": "Kostenlose Open-Source-App fürs Kellerinventar: Dinge fotografieren, von KI beschreiben lassen und in Sekunden wiederfinden. Selbst gehostet auf dem Raspberry Pi.",
@@ -146,7 +152,8 @@ def page(c):
     tiles = "".join(f'<li class="tile t-{col}">{icon(i)}<h3>{t}</h3><p>{d}</p></li>' for col, i, t, d in c["tiles"])
     checks = "".join(f'<li>{icon("check")}<span>{x}</span></li>' for x in c["checks"])
     faq = "".join(f'<details><summary>{q}</summary><p>{a}</p></details>' for q, a in c["faq"])
-    foot_nav = "".join(f'<a href="{u}">{t}</a>' for t, u in c["foot_nav"])
+    nav = list(c["foot_nav"]) + ([("Impressum", "/impressum.html"), ("Datenschutz", "/datenschutz.html")] if LEGAL else [])
+    foot_nav = "".join(f'<a href="{u}">{t}</a>' for t, u in nav)
     term = (f'<span class="p">$</span> git clone {REPO}.git\n<span class="p">$</span> cd chaosgone &amp;&amp; npm install\n'
             f'<span class="p">$</span> cp .env.example .env.local  <span class="c">{c["term_comment"]}</span>\n'
             f'<span class="p">$</span> npm run build &amp;&amp; pm2 start ecosystem.config.cjs\n<span class="c">{c["term_hint"]}</span>')
@@ -275,6 +282,7 @@ def page(c):
         <a class="btn" href="{REPO}">{icon("github")}{c["cta_gh"]}</a>
         <a class="btn btn--ghost" href="{REPO}#readme">{c["fin_docs"]}</a>
       </div>
+      <p class="coffee">{icon("coffee")}<span>{c["coffee"]} <a href="{KOFI}" rel="noopener">ko-fi.com/jzakotnik</a></span></p>
     </div>
   </section>
 </main>
