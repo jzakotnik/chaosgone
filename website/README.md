@@ -14,35 +14,42 @@ website/
 │   ├── favicon.ico, icon.svg, apple-touch-icon.png, icon-*.png, site.webmanifest
 │   ├── robots.txt, sitemap.xml, 404.html
 ├── tools/generate.py        regenerates both pages, sitemap and robots.txt from one template
-├── deploy.sh                rsync to your server (dry run by default)
+├── deploy.sh                copies public/ into the nginx web root (on the server, or over scp; dry run by default)
 ├── nginx/chaosgone.de.conf  plain HTTP server block (caching, gzip, security headers); certbot adds HTTPS
 └── legal-templates/         German Impressum / Datenschutz templates (NOT deployed, see below)
 ```
 
-## Deploy to chaosgone.de in five steps
+## Deploy to chaosgone.de
 
 The pages are generated for `https://chaosgone.de` (canonical, hreflang, Open Graph, sitemap). For another domain run
 `python3 website/tools/generate.py https://your-domain.tld` and use that name in the nginx file and certbot call.
 
 1. **DNS:** point an A record (and an AAAA record if the server has IPv6) of `chaosgone.de` and `www.chaosgone.de`
    to the server. Wait until `dig +short chaosgone.de` returns it; certbot needs this.
-2. **nginx:** on the server, with the file `website/nginx/chaosgone.de.conf` copied over:
+2. **Get the repo onto the server.** Nothing has to be built: the finished HTML is committed in `website/public/`.
    ```bash
-   sudo cp chaosgone.de.conf /etc/nginx/sites-available/chaosgone.de
+   git clone https://github.com/jzakotnik/chaosgone.git ~/chaosgone      # later: cd ~/chaosgone && git pull
+   cd ~/chaosgone
+   ```
+3. **nginx** (the file serves `/var/www/html` on port 80 for `chaosgone.de` and `www.chaosgone.de`):
+   ```bash
+   sudo cp website/nginx/chaosgone.de.conf /etc/nginx/sites-available/chaosgone.de
    sudo ln -s /etc/nginx/sites-available/chaosgone.de /etc/nginx/sites-enabled/
    sudo nginx -t && sudo systemctl reload nginx
    ```
-   The file serves `/var/www/html` on port 80 for `chaosgone.de` and `www.chaosgone.de`.
-3. **Copy the site** (dry run first, then for real; it never deletes anything on the server):
+4. **Copy the site into the web root** (list first, then for real; files are overwritten, nothing is deleted):
    ```bash
-   website/deploy.sh user@your-server
-   website/deploy.sh user@your-server --go          # use WEBROOT=/var/www/chaosgone for another folder
+   website/deploy.sh            # shows what would be copied
+   website/deploy.sh --go       # copies into /var/www/html (uses sudo when needed)
    ```
-   Without the script: `rsync -avz website/public/ user@your-server:/var/www/html/`. The script refuses to run
-   while the placeholder domain `chaosgone.example` is in the files, or while the footer links to legal pages that
-   are missing or not filled in.
-4. **Check over HTTP:** `curl -I http://chaosgone.de/` should return `200`.
-5. **HTTPS:** certbot edits the server block (adds port 443, the certificate and the redirect from http):
+   Without the script this is `sudo cp -r website/public/. /var/www/html/` followed by
+   `sudo chmod -R a+rX /var/www/html`. The script also refuses to run while the placeholder domain
+   `chaosgone.example` is in the files, or while the footer links to legal pages that are missing or not filled in.
+   `WEBROOT=/var/www/chaosgone website/deploy.sh --go` uses another folder.
+   **From your laptop instead:** `website/deploy.sh user@your-server --go` copies over `scp` (the user needs write
+   access to the web root, once: `sudo chown -R user /var/www/html`).
+5. **Check over HTTP:** `curl -I http://chaosgone.de/` should return `200`.
+6. **HTTPS:** certbot edits the server block (adds port 443, the certificate and the redirect from http):
    ```bash
    sudo certbot --nginx -d chaosgone.de -d www.chaosgone.de
    sudo certbot renew --dry-run        # checks that automatic renewal works
@@ -50,6 +57,8 @@ The pages are generated for `https://chaosgone.de` (canonical, hreflang, Open Gr
    Afterwards, once everything works over HTTPS, you may add the line
    `add_header Strict-Transport-Security "max-age=31536000" always;` to the server block (HSTS makes browsers
    refuse plain http for a year, so only add it when you are sure).
+
+**Updating later:** `cd ~/chaosgone && git pull && website/deploy.sh --go`.
 
 Both `chaosgone.de` and `www.chaosgone.de` are served; the pages point search engines to `https://chaosgone.de`
 with a canonical link. If you prefer a hard redirect from `www`, add a second `server` block with
