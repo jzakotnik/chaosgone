@@ -210,6 +210,9 @@ Update to a new version:
 git pull && npm install && npm run build && pm2 restart chaosgone --update-env
 ```
 
+The process file starts `next start -p 3500 -H 0.0.0.0`, i.e. **IPv4 only** (see
+[Plain http on your LAN](#plain-http-on-your-lan) for why).
+
 Useful: `pm2 logs chaosgone`, `pm2 restart chaosgone`, `pm2 stop chaosgone`. To start at boot run `pm2 startup`
 once and execute the command it prints. If `npm run build` is killed on a small Pi (out of memory), add swap space
 or build on another machine of the same architecture and copy the `.next` folder. Use a 64-bit OS so the prebuilt
@@ -235,6 +238,14 @@ Data lives in `./data` next to the compose file (mounted at `/data`). The image 
   Photo upload is unaffected: *Take photo* and *From gallery* use the phone's own camera/file picker.
 - **Host name:** the name (`raspihome`) must resolve on every device (router DNS, `raspihome.local`), otherwise
   use the IP address.
+- **Chrome error "blocked by CORS policy: The request client is not a secure context and the resource is in
+  more-private address space `local`":** this is Chrome's Private/Local Network Access check, not a CORS setting
+  of the app. It happens when the host name has several addresses and one is a **public IPv6 address** (common
+  with FRITZ!Box and other IPv6-enabled routers): Chrome loads the page over it, treats the page as "public", and
+  then blocks the page's own requests to the private address. The app therefore listens on **IPv4 only**
+  (`-H 0.0.0.0` in `ecosystem.config.cjs` and in `npm start`); without `-H`, Node binds to `::`. Check the
+  addresses of your host with `dscacheutil -q host -a name raspihome` (macOS) or `hostname -I` (on the Pi). Using
+  the IP address in the URL, or HTTPS, also avoids it.
 - Use the production build. `next dev` additionally blocks requests from other hosts unless
   `allowedDevOrigins` is set.
 
@@ -256,7 +267,9 @@ URLs from `X-Forwarded-Host` / `X-Forwarded-Proto`, so make sure the proxy forwa
 ### Security
 
 There is **no login**. Anyone who can reach the port can read, change and delete everything and can spend your
-API credit. Keep it on your LAN; if you expose it, put authentication in the reverse proxy. Pages carry
+API credit. Keep it on your LAN; if you expose it, put authentication in the reverse proxy. Listening on IPv4 only
+also keeps the app off the host's public IPv6 address, which could otherwise be reachable from the internet if your
+router allows incoming connections. Pages carry
 `noindex, nofollow`, so search engines are asked to stay away.
 
 ## Sharing links, favicons and the PWA
@@ -353,6 +366,7 @@ All endpoints are JSON unless noted. Errors look like `{"error": "<code>", "mess
 | Photos from an iPhone are slow | HEIC is converted on the server. Switch the camera to *Most Compatible* (JPEG). |
 | Portrait photos are rotated wrongly | Rotation is read from the photo's metadata. Open an issue with the device and a sample file. |
 | Page cannot be opened from the phone | The host name does not resolve on the phone (use the IP), the port is blocked by a firewall, or the app is not running (`pm2 list`). |
+| Chrome: "blocked by CORS policy ... not a secure context ... more-private address space" (buttons do nothing, pages do not switch) | The host name resolves to a public IPv6 address as well. Update to the version that starts with `-H 0.0.0.0`, restart (`pm2 restart chaosgone --update-env`), or open the app by its IPv4 address. Details under [Plain http on your LAN](#plain-http-on-your-lan). |
 | `next build` is killed | Out of memory on a small board: add swap or build elsewhere. |
 | Batch import stops at "no API key" | Same as the first row; the batch stops at once instead of creating empty items. |
 | Link preview shows no image or old text | The preview service caches results, or cannot reach a LAN address. |
