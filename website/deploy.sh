@@ -1,15 +1,25 @@
 #!/usr/bin/env bash
-# Copy the static site to your nginx server.
-#   website/deploy.sh user@your-server            # dry run: shows what would be copied
-#   website/deploy.sh user@your-server --go       # really copy to /var/www/html
-#   WEBROOT=/var/www/chaosgone website/deploy.sh user@your-server --go
-# Never deletes anything on the server (no rsync --delete), so other sites in the folder are safe.
+# Publish the static site into the nginx web root. No build, no rsync: the finished HTML is in website/public.
+#
+#   On the server, with the repo checked out there:   website/deploy.sh --go
+#   From your laptop over scp:                        website/deploy.sh user@your-server --go
+#
+# Without --go it only lists what would be copied. Files are overwritten; nothing is ever deleted.
+# WEBROOT (default /var/www/html/chaosgone) can be changed: WEBROOT=/srv/www/chaosgone website/deploy.sh --go
+# On the server `sudo` is used when you cannot write to the web root; over scp the user needs write access
+# (once: `sudo chown -R user /var/www/html/chaosgone`).
 set -euo pipefail
 cd "$(dirname "$0")"
 
-TARGET="${1:-}"; MODE="${2:-}"
-WEBROOT="${WEBROOT:-/var/www/html}"
-[ -n "$TARGET" ] || { echo "usage: $0 user@server [--go]" >&2; exit 2; }
+TARGET=""; GO=""
+for a in "$@"; do
+  case "$a" in
+    --go) GO=1 ;;
+    -*) echo "unknown option: $a (usage: $0 [user@server] [--go])" >&2; exit 2 ;;
+    *) TARGET="$a" ;;
+  esac
+done
+WEBROOT="${WEBROOT:-/var/www/html/chaosgone}"
 
 if grep -rq "chaosgone\.example" public --include='*.html' --include='*.xml' --include='*.txt' && [ -z "${ALLOW_PLACEHOLDER_DOMAIN:-}" ]; then
   echo "Refusing to deploy: the pages still contain the placeholder domain chaosgone.example." >&2
@@ -27,6 +37,36 @@ if grep -q 'href="/impressum.html"' public/index.html; then
   done
 fi
 
-ARGS=(-avz --chmod=D755,F644 --itemize-changes)
-if [ "$MODE" != "--go" ]; then ARGS+=(--dry-run); echo "(dry run, add --go to copy for real)"; fi
-rsync "${ARGS[@]}" public/ "$TARGET:$WEBROOT/"
+# Local mode: never copy into the repository itself (that would mix site files with source code and .git).
+if [ -z "$TARGET" ]; then
+  REPO_DIR="$(cd .. && pwd -P)"
+  WEB_REAL="$(cd "$WEBROOT" 2>/dev/null && pwd -P || true)"
+  case "${WEB_REAL:-}/" in
+    "$REPO_DIR"/*) echo "Refusing to deploy: $WEBROOT is inside the repository ($REPO_DIR). Use a separate web root folder." >&2; exit 1 ;;
+  esac
+fi
+
+ENTRIES=(public/*)
+NAMES=("${ENTRIES[@]#public/}")
+printf -v NAMELIST '%q ' "${NAMES[@]}"
+
+if [ -z "$GO" ]; then
+  echo "(dry run, add --go to copy for real) These files would go to ${TARGET:+$TARGET:}$WEBROOT/"
+  (cd public && find . -type f | sort | sed 's#^\./#  #')
+  exit 0
+fi
+
+if [ -z "$TARGET" ]; then
+  # Local mode: we are on the web server.
+  SUDO=""; [ -w "$WEBROOT" ] || SUDO="sudo"
+  $SUDO mkdir -p "$WEBROOT"
+  $SUDO cp -r "${ENTRIES[@]}" "$WEBROOT/"
+  # make sure nginx (another user) can read everything we copied, whatever the umask was
+  (cd "$WEBROOT" && $SUDO chmod -R u+rwX,go+rX -- "${NAMES[@]}")
+  echo "Done: copied ${#NAMES[@]} entries to $WEBROOT"
+else
+  scp -rC "${ENTRIES[@]}" "$TARGET:$WEBROOT/"
+  # scp keeps whatever permissions your local umask gave; make sure nginx can read what we copied
+  ssh "$TARGET" "cd '$WEBROOT' && chmod -R u+rwX,go+rX -- $NAMELIST"
+  echo "Done: copied to $TARGET:$WEBROOT"
+fi
