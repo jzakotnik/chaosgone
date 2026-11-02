@@ -159,5 +159,17 @@
   "select.deleted.one": "{count} item deleted",
   "select.deleted.other": "{count} items deleted",
   "select.reviewed.one": "{count} item marked as reviewed",
-  "select.reviewed.other": "{count} items marked as reviewed"
+  "select.reviewed.other": "{count} items marked as reviewed",
+  "pdf.export": "Export PDF",
+  "pdf.title": "Inventory",
+  "pdf.overview": "Overview",
+  "pdf.continued": "(continued)",
+  "pdf.page": "Page {n} of {total}",
+  "pdf.qty": "Qty",
+  "pdf.collection": "Collection",
+  "pdf.photos": "{count} photos",
+  "pdf.notes": "Notes",
+  "pdf.noPhoto": "No photo",
+  "box.count.one": "{count} box",
+  "box.count.other": "{count} boxes"
 }

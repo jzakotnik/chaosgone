@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileDown } from "lucide-react";
 import { AddItemFab } from "@/components/add-item-fab";
+import { buttonVariants } from "@/components/ui/button";
 import { BoxDialog } from "@/components/box-dialog";
 import { SelectableItems } from "@/components/selectable-items";
 import { getT } from "@/lib/i18n";
@@ -45,7 +46,18 @@ export default async function BoxPage({ params }: PageProps<"/box/[id]">) {
             </div>
           </div>
         </div>
-        <BoxDialog box={box} />
+        <div className="flex shrink-0 items-center gap-2">
+          <a
+            href={`/api/export/pdf?box=${box.id}`}
+            download
+            aria-label={t("pdf.export")}
+            title={t("pdf.export")}
+            className={buttonVariants({ variant: "outline", size: "icon", className: "border-2 border-black/30 bg-card" })}
+          >
+            <FileDown />
+          </a>
+          <BoxDialog box={box} />
+        </div>
       </div>
       {items.length === 0 ? (
         <p className="plate p-6 text-muted-foreground">{t("box.empty")}</p>
