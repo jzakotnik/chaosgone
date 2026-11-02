@@ -5,9 +5,9 @@
 #   From your laptop over scp:                        website/deploy.sh user@your-server --go
 #
 # Without --go it only lists what would be copied. Files are overwritten; nothing is ever deleted.
-# WEBROOT (default /var/www/html) can be changed: WEBROOT=/var/www/chaosgone website/deploy.sh --go
+# WEBROOT (default /var/www/html/chaosgone) can be changed: WEBROOT=/srv/www/chaosgone website/deploy.sh --go
 # On the server `sudo` is used when you cannot write to the web root; over scp the user needs write access
-# (once: `sudo chown -R user /var/www/html`).
+# (once: `sudo chown -R user /var/www/html/chaosgone`).
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -19,7 +19,7 @@ for a in "$@"; do
     *) TARGET="$a" ;;
   esac
 done
-WEBROOT="${WEBROOT:-/var/www/html}"
+WEBROOT="${WEBROOT:-/var/www/html/chaosgone}"
 
 if grep -rq "chaosgone\.example" public --include='*.html' --include='*.xml' --include='*.txt' && [ -z "${ALLOW_PLACEHOLDER_DOMAIN:-}" ]; then
   echo "Refusing to deploy: the pages still contain the placeholder domain chaosgone.example." >&2
@@ -35,6 +35,15 @@ if grep -q 'href="/impressum.html"' public/index.html; then
       echo "Refusing to deploy: public/$f.html still contains [placeholders]." >&2; exit 1
     fi
   done
+fi
+
+# Local mode: never copy into the repository itself (that would mix site files with source code and .git).
+if [ -z "$TARGET" ]; then
+  REPO_DIR="$(cd .. && pwd -P)"
+  WEB_REAL="$(cd "$WEBROOT" 2>/dev/null && pwd -P || true)"
+  case "${WEB_REAL:-}/" in
+    "$REPO_DIR"/*) echo "Refusing to deploy: $WEBROOT is inside the repository ($REPO_DIR). Use a separate web root folder." >&2; exit 1 ;;
+  esac
 fi
 
 ENTRIES=(public/*)

@@ -5,7 +5,7 @@ the server, no JavaScript, no external requests: the fonts are self-hosted and e
 
 ```
 website/
-├── public/                  <- this is what goes into /var/www/html
+├── public/                  <- this is what goes into the web root, /var/www/html/chaosgone
 │   ├── index.html           English page
 │   ├── de/index.html        German page
 │   ├── css/site.css         styles (same workshop look as the app)
@@ -31,7 +31,7 @@ The pages are generated for `https://chaosgone.de` (canonical, hreflang, Open Gr
    git clone https://github.com/jzakotnik/chaosgone.git ~/chaosgone      # later: cd ~/chaosgone && git pull
    cd ~/chaosgone
    ```
-3. **nginx** (the file serves `/var/www/html` on port 80 for `chaosgone.de` and `www.chaosgone.de`):
+3. **nginx** (the file serves `/var/www/html/chaosgone` on port 80 for `chaosgone.de` and `www.chaosgone.de`):
    ```bash
    sudo cp website/nginx/chaosgone.de.conf /etc/nginx/sites-available/chaosgone.de
    sudo ln -s /etc/nginx/sites-available/chaosgone.de /etc/nginx/sites-enabled/
@@ -40,14 +40,14 @@ The pages are generated for `https://chaosgone.de` (canonical, hreflang, Open Gr
 4. **Copy the site into the web root** (list first, then for real; files are overwritten, nothing is deleted):
    ```bash
    website/deploy.sh            # shows what would be copied
-   website/deploy.sh --go       # copies into /var/www/html (uses sudo when needed)
+   website/deploy.sh --go       # copies into /var/www/html/chaosgone (uses sudo when needed)
    ```
-   Without the script this is `sudo cp -r website/public/. /var/www/html/` followed by
-   `sudo chmod -R a+rX /var/www/html`. The script also refuses to run while the placeholder domain
+   Without the script this is `sudo mkdir -p /var/www/html/chaosgone`, then
+   `sudo cp -r website/public/. /var/www/html/chaosgone/` and `sudo chmod -R a+rX /var/www/html/chaosgone`. The script also refuses to run while the placeholder domain
    `chaosgone.example` is in the files, or while the footer links to legal pages that are missing or not filled in.
-   `WEBROOT=/var/www/chaosgone website/deploy.sh --go` uses another folder.
+   `WEBROOT=/srv/www/chaosgone website/deploy.sh --go` uses another folder (then change `root` in the nginx file).
    **From your laptop instead:** `website/deploy.sh user@your-server --go` copies over `scp` (the user needs write
-   access to the web root, once: `sudo chown -R user /var/www/html`).
+   access to the web root, once: `sudo chown -R user /var/www/html/chaosgone`).
 5. **Check over HTTP:** `curl -I http://chaosgone.de/` should return `200`.
 6. **HTTPS:** certbot edits the server block (adds port 443, the certificate and the redirect from http):
    ```bash
@@ -59,6 +59,12 @@ The pages are generated for `https://chaosgone.de` (canonical, hreflang, Open Gr
    refuse plain http for a year, so only add it when you are sure).
 
 **Updating later:** `cd ~/chaosgone && git pull && website/deploy.sh --go`.
+
+**Keep the repository and the web root apart.** The web root `/var/www/html/chaosgone` should contain only the
+site files, not the cloned repository: a repo there would put source code and `.git` into a folder that other
+nginx server blocks (for example the default site) may serve. `deploy.sh` refuses to copy into the repository,
+and the nginx file denies dotfiles (`.git`, `.env`) as a second line of defence; `/.well-known/` stays reachable for
+certbot. Check yours with `curl -I http://<server-ip>/chaosgone/.git/config` (should not return `200`).
 
 Both `chaosgone.de` and `www.chaosgone.de` are served; the pages point search engines to `https://chaosgone.de`
 with a canonical link. If you prefer a hard redirect from `www`, add a second `server` block with
