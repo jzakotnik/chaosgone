@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { getT } from "@/lib/i18n";
 import { countToReview, listBoxes } from "@/lib/repo";
 import Link from "next/link";
-import { ClipboardCheck, Images } from "lucide-react";
+import { ClipboardCheck, FileDown, Images } from "lucide-react";
 
 export default async function Home() {
   const { t } = await getT();
@@ -19,6 +19,13 @@ export default async function Home() {
         <Link href="/batch" className={buttonVariants({ variant: "outline", className: "h-10 border-2 border-input bg-card" })}>
           <Images /> {t("nav.batch")}
         </Link>
+        <a
+          href="/api/export/pdf"
+          download
+          className={buttonVariants({ variant: "outline", className: "h-10 border-2 border-input bg-card" })}
+        >
+          <FileDown /> {t("pdf.export")}
+        </a>
         {toReview > 0 && (
           <Link
             href="/review"

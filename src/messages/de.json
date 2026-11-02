@@ -159,5 +159,17 @@
   "select.deleted.one": "{count} Teil gelöscht",
   "select.deleted.other": "{count} Teile gelöscht",
   "select.reviewed.one": "{count} Teil als geprüft markiert",
-  "select.reviewed.other": "{count} Teile als geprüft markiert"
+  "select.reviewed.other": "{count} Teile als geprüft markiert",
+  "pdf.export": "PDF exportieren",
+  "pdf.title": "Inventar",
+  "pdf.overview": "Übersicht",
+  "pdf.continued": "(Fortsetzung)",
+  "pdf.page": "Seite {n} von {total}",
+  "pdf.qty": "Menge",
+  "pdf.collection": "Sammlung",
+  "pdf.photos": "{count} Fotos",
+  "pdf.notes": "Notizen",
+  "pdf.noPhoto": "Kein Foto",
+  "box.count.one": "{count} Kiste",
+  "box.count.other": "{count} Kisten"
 }
