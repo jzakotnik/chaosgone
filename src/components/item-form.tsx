@@ -25,10 +25,13 @@ export function ItemForm({
   boxes,
   item,
   defaultBoxId,
+  reviewFlow = false,
 }: {
   boxes: Box[];
   item?: Item;
   defaultBoxId?: number;
+  /** Editing from the review flow: keep the item "to review" and return to the review step after saving. */
+  reviewFlow?: boolean;
 }) {
   const t = useT();
   const router = useRouter();
@@ -107,7 +110,9 @@ export function ItemForm({
         box_id: boxId,
         name,
         is_collection: isCollection,
-        needs_review: false, // saving the form counts as a review
+        // saving the form counts as a review, except inside the review flow,
+        // where the user returns to the review step to confirm explicitly
+        ...(reviewFlow ? {} : { needs_review: false }),
         quantity: isCollection || quantity.trim() === "" ? null : Math.max(0, Math.round(Number(quantity))),
         ean: ean.trim() || null,
         description,
@@ -118,7 +123,7 @@ export function ItemForm({
         ? await api<Item>(`/api/items/${item.id}`, { method: "PATCH", body })
         : await api<Item>("/api/items", { method: "POST", body });
       toast.success(t("item.saved"));
-      router.push(`/item/${saved.id}`);
+      router.push(`/item/${saved.id}${reviewFlow ? "?review=1" : ""}`);
       router.refresh();
     } catch (err) {
       toast.error(errorMessage(t, err));

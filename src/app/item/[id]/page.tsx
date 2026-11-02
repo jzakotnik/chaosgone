@@ -111,7 +111,7 @@ export default async function ItemPage({ params, searchParams }: PageProps<"/ite
       <p className="text-xs text-muted-foreground">{t("item.createdAt", { date: created })}</p>
 
       <div className="flex flex-wrap gap-2">
-        <Link href={`/item/${item.id}/edit`} className={buttonVariants({ variant: "outline", className: "h-11" })}>
+        <Link href={`/item/${item.id}/edit${flow ? "?review=1" : ""}`} className={buttonVariants({ variant: "outline", className: "h-11" })}>
           <Pencil /> {t("common.edit")}
         </Link>
         <ItemActions item={item} />
