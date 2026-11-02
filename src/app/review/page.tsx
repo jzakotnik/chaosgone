@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ArrowLeft, ClipboardCheck } from "lucide-react";
-import { ItemCard } from "@/components/item-card";
+import { SelectableItems } from "@/components/selectable-items";
 import { buttonVariants } from "@/components/ui/button";
 import { getT } from "@/lib/i18n";
-import { listItemsToReview } from "@/lib/repo";
+import { listBoxes, listItemsToReview } from "@/lib/repo";
 
 export default async function ReviewPage() {
   const { t } = await getT();
@@ -26,11 +26,7 @@ export default async function ReviewPage() {
       {items.length === 0 ? (
         <p className="plate p-6 text-muted-foreground">{t("review.empty")}</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {items.map((i) => (
-            <ItemCard key={i.id} item={i} href={`/item/${i.id}?review=1`} quantityLabel={i.quantity ? `×${i.quantity}` : undefined} />
-          ))}
-        </div>
+        <SelectableItems items={items} boxes={listBoxes()} reviewFlow />
       )}
     </div>
   );

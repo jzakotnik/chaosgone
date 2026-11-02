@@ -1,8 +1,8 @@
 import { AiSearch } from "@/components/ai-search";
-import { ItemCard } from "@/components/item-card";
+import { SelectableItems } from "@/components/selectable-items";
 import { SearchBar } from "@/components/search-bar";
 import { getT } from "@/lib/i18n";
-import { listItems } from "@/lib/repo";
+import { listBoxes, listItems } from "@/lib/repo";
 import { searchItems } from "@/lib/search";
 
 export default async function SearchPage({ searchParams }: PageProps<"/search">) {
@@ -21,18 +21,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
               ? t("search.results", { count: hits.length, q })
               : t("search.none", { q })}
           </h1>
-          {hits.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {hits.map(({ item }) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  reviewLabel={t("review.badge")}
-                  quantityLabel={item.quantity ? `×${item.quantity}` : undefined}
-                />
-              ))}
-            </div>
-          )}
+          {hits.length > 0 && <SelectableItems items={hits.map((h) => h.item)} boxes={listBoxes()} />}
           {q.length >= 2 && <AiSearch q={q} />}
         </>
       )}

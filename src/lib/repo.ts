@@ -172,6 +172,25 @@ export async function updateItem(
   return getItem(id);
 }
 
+/** Moves several items to another box in one transaction. Returns how many were moved. */
+export function moveItems(ids: number[], boxId: number): number {
+  const stmt = db().prepare("UPDATE items SET box_id = ?, updated_at = datetime('now') WHERE id = ?");
+  return db().transaction(() => [...new Set(ids)].reduce((n, id) => n + stmt.run(boxId, id).changes, 0))();
+}
+
+/** Clears the "needs review" flag of several items. */
+export function markReviewed(ids: number[]): number {
+  const stmt = db().prepare("UPDATE items SET needs_review = 0, updated_at = datetime('now') WHERE id = ?");
+  return db().transaction(() => [...new Set(ids)].reduce((n, id) => n + stmt.run(id).changes, 0))();
+}
+
+/** Deletes several items together with their photo files. Returns how many existed. */
+export async function deleteItems(ids: number[]): Promise<number> {
+  let n = 0;
+  for (const id of new Set(ids)) if (await deleteItem(id)) n++;
+  return n;
+}
+
 export async function deleteItem(id: number): Promise<boolean> {
   const cur = getItem(id);
   if (!cur) return false;
