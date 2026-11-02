@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AddItemFab } from "@/components/add-item-fab";
 import { BoxDialog } from "@/components/box-dialog";
-import { ItemCard } from "@/components/item-card";
+import { SelectableItems } from "@/components/selectable-items";
 import { getT } from "@/lib/i18n";
 import { BoxIcon, boxTone } from "@/lib/box-style";
-import { getBox, listItems } from "@/lib/repo";
+import { getBox, listBoxes, listItems } from "@/lib/repo";
 import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -50,16 +50,7 @@ export default async function BoxPage({ params }: PageProps<"/box/[id]">) {
       {items.length === 0 ? (
         <p className="plate p-6 text-muted-foreground">{t("box.empty")}</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {items.map((i) => (
-            <ItemCard
-              key={i.id}
-              item={i}
-              reviewLabel={t("review.badge")}
-              quantityLabel={i.quantity ? `×${i.quantity}` : undefined}
-            />
-          ))}
-        </div>
+        <SelectableItems items={items} boxes={listBoxes()} currentBoxId={box.id} />
       )}
       <AddItemFab boxId={box.id} />
     </div>

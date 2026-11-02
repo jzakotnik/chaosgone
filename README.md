@@ -126,12 +126,22 @@ Use this when you have photographed a lot of things and each photo is one item.
   question and returns the best matches with a one-sentence reason each. This costs a little per click and is
   off unless you press it.
 
-### 6. Regenerate a description
+### 6. Select, move and delete several items
+
+Put things in the wrong box? On a box page, in the review list and in search results tap **Auswählen** (select),
+then tap the items you want, or **Alle** (all). The bar at the bottom offers:
+
+- **Verschieben** (move): choose the destination box and press the button. A toast with **Rückgängig** (undo)
+  appears for a few seconds; undo also works when the items came from different boxes.
+- **⋯ more actions:** *Als geprüft markieren* (mark as reviewed, for batch items) and *Löschen …* (delete). Deleting
+  asks for confirmation and removes the items and their photos for good.
+
+### 7. Regenerate a description
 
 Open an item → **Beschreibung neu erzeugen**. Adjust your notes if you like, add a hint for this one run
 ("this is a hex key, not a Torx"), generate, edit the proposal and apply. Nothing is saved until you apply.
 
-### 7. Barcode scanning
+### 8. Barcode scanning
 
 The **Scan** button uses the browser's camera and the `BarcodeDetector` API (Chrome/Edge on Android and
 desktop). It needs **HTTPS or `localhost`**, because browsers only expose the camera on secure origins. Where
@@ -323,6 +333,7 @@ All endpoints are JSON unless noted. Errors look like `{"error": "<code>", "mess
 | `GET /api/items?box=<id>`, `GET /api/items?review=1` | List items of a box / items to review |
 | `POST /api/items` | Create an item (`box_id`, `name`, optional `quantity`, `ean`, `description`, `notes`, `is_collection`, `needs_review`, `photos[]`) |
 | `GET/PATCH/DELETE /api/items/:id` | Read / update / delete an item |
+| `POST /api/items/bulk` | Bulk action on `item_ids[]`: `{action: "move", box_id}`, `{action: "mark_reviewed"}` or `{action: "delete"}` |
 | `POST /api/items/:id/describe` | Propose a new description (`notes`, `hint`); saves nothing |
 | `POST /api/photos` | Upload one photo as multipart field `file` (max. 25 MB), returns `{filename}` |
 | `GET /api/photos/:name?thumb=1` | The photo or its thumbnail |
