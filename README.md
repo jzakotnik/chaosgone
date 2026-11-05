@@ -237,7 +237,7 @@ native modules (`better-sqlite3`, `sharp`) install.
 ### Docker
 
 The image is published on Docker Hub as [`jzakotnik/chaosgone`](https://hub.docker.com/r/jzakotnik/chaosgone)
-(`linux/amd64` and `linux/arm64`). Tags: `latest` (main branch), version tags such as `1.2.3` and `sha-<commit>`.
+(`linux/amd64` and `linux/arm64`).
 
 **One command:**
 
@@ -273,10 +273,16 @@ docker compose pull && docker compose up -d    # update
 **Build it yourself:** `docker build -t chaosgone .` (or uncomment `build: .` in the compose file). The Dockerfile
 uses Next.js' standalone output (`NEXT_OUTPUT=standalone`) in a multi-stage build.
 
-**Publishing (maintainers):** `.github/workflows/docker-publish.yml` builds both architectures and pushes to Docker
-Hub on every push to `main` and on `v*` tags (or manually via *Run workflow*). Add two repository secrets once
-(Settings → Secrets and variables → Actions): `DOCKERHUB_USERNAME` (`jzakotnik`) and `DOCKERHUB_TOKEN` (a Docker Hub
-access token with *Read & Write* scope). The workflow also copies this README to the Docker Hub page.
+**Publishing (maintainers):** push a multi-arch image to Docker Hub by hand from the repository root:
+
+```bash
+docker login -u jzakotnik          # use a Docker Hub access token as the password
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t jzakotnik/chaosgone:latest --push .
+```
+
+(Create a builder once with `docker buildx create --use --name multi`, or select an existing one with
+`docker buildx use multi`. Add `-t jzakotnik/chaosgone:1.0.0` for a version tag.)
 
 ### Plain `http://` on your LAN
 
@@ -447,7 +453,6 @@ docs/screenshots/        images used in this README
 website/                 static landing page for a public web server (see website/README.md)
 ecosystem.config.cjs     pm2 process file
 Dockerfile, docker-compose.yml
-.github/workflows/      Docker Hub publishing
 ```
 
 **Add a language:** copy `src/messages/en.json` to `src/messages/<code>.json` and translate it, add the code to
