@@ -55,10 +55,10 @@ COPY = {
                    "Hosts on a Raspberry Pi, any Linux box or in Docker.",
                    "Your data is one SQLite file plus a photo folder: back it up with a simple copy.",
                    "The optional AI features use your own Claude API key. You pay only for what you use."],
-        "term_title": "Install on your Pi", "term_comment": "# add your API key", "term_hint": "# then open http://raspihome:3500",
+        "term_title": "Quickstart with Docker", "term_comment": "", "term_hint": "# Replace sk-ant-... with your Anthropic key (optional). Then open http://localhost:3000 (data stays in the chaosgone-data volume)",
         "q_kicker": "FAQ", "q_h2": "Good to know",
         "faq": [("Is it really free?", "Yes. ChaosGone is MIT-licensed open source: no account, no subscription, no ads. The only cost is optional: photo recognition uses the Claude API with your own key, and you pay Anthropic for what you use."),
-                ("What do I need to run it?", "A Raspberry Pi with a 64-bit OS, any Linux machine, or Docker. Setup is a handful of commands with pm2 or Docker; the README walks you through it."),
+                ("What do I need to run it?", "A Raspberry Pi with a 64-bit OS, any Linux machine, or Docker. Docker is the quickest way: one command starts it. Without Docker, a handful of commands with pm2 do the same; the README walks you through it."),
                 ("Do my photos leave my network?", "Photos are stored on your own machine. Only when you use a Claude feature (identify, batch import, regenerate) is the downscaled photo sent to Anthropic's API. The normal search never calls the API; the optional AI search sends the inventory as text, without photos."),
                 ("Does it work without AI?", "Yes. You can add items by hand and search them. Only photo recognition and the AI search need an API key."),
                 ("Which languages does it speak?", "The interface is in German and English, and Claude writes descriptions in the language you selected.")],
@@ -103,10 +103,10 @@ COPY = {
                    "Läuft auf dem Raspberry Pi, jedem Linux-Rechner oder in Docker.",
                    "Deine Daten sind eine SQLite-Datei plus ein Fotoordner: ein einfaches Kopieren genügt als Backup.",
                    "Die optionalen KI-Funktionen nutzen deinen eigenen Claude-API-Schlüssel. Du zahlst nur, was du verbrauchst."],
-        "term_title": "Auf dem Pi installieren", "term_comment": "# API-Schlüssel eintragen", "term_hint": "# danach http://raspihome:3500 öffnen",
+        "term_title": "Schnellstart mit Docker", "term_comment": "", "term_hint": "# sk-ant-... durch deinen Anthropic-Schlüssel ersetzen (optional). Danach http://localhost:3000 öffnen (Daten bleiben im Volume chaosgone-data)",
         "q_kicker": "FAQ", "q_h2": "Gut zu wissen",
         "faq": [("Ist das wirklich kostenlos?", "Ja. ChaosGone ist Open Source unter der MIT-Lizenz: kein Konto, kein Abo, keine Werbung. Kosten entstehen nur optional: Die Fotoerkennung nutzt die Claude-API mit deinem eigenen Schlüssel, und du zahlst Anthropic nur für die Nutzung."),
-                ("Was brauche ich zum Betrieb?", "Einen Raspberry Pi mit 64-Bit-System, einen beliebigen Linux-Rechner oder Docker. Die Einrichtung sind ein paar Befehle mit pm2 oder Docker; das README führt dich durch."),
+                ("Was brauche ich zum Betrieb?", "Einen Raspberry Pi mit 64-Bit-System, einen beliebigen Linux-Rechner oder Docker. Mit Docker genügt ein Befehl. Ohne Docker sind es ein paar Befehle mit pm2; das README führt dich durch."),
                 ("Verlassen meine Fotos mein Netz?", "Die Fotos liegen auf deinem eigenen Rechner. Nur wenn du eine Claude-Funktion nutzt (Erkennen, Stapel-Import, Neu erzeugen), wird das verkleinerte Foto an die API von Anthropic geschickt. Die normale Suche ruft die API nie auf; die optionale KI-Suche schickt das Inventar als Text, ohne Fotos."),
                 ("Geht es auch ohne KI?", "Ja. Du kannst Teile von Hand erfassen und durchsuchen. Nur Fotoerkennung und KI-Suche brauchen einen API-Schlüssel."),
                 ("Welche Sprachen gibt es?", "Die Oberfläche gibt es auf Deutsch und Englisch, und Claude schreibt die Beschreibungen in der gewählten Sprache.")],
@@ -154,9 +154,11 @@ def page(c):
     faq = "".join(f'<details><summary>{q}</summary><p>{a}</p></details>' for q, a in c["faq"])
     nav = list(c["foot_nav"]) + ([("Impressum", "/impressum.html"), ("Datenschutz", "/datenschutz.html")] if LEGAL else [])
     foot_nav = "".join(f'<a href="{u}">{t}</a>' for t, u in nav)
-    term = (f'<span class="p">$</span> git clone {REPO}.git\n<span class="p">$</span> cd chaosgone &amp;&amp; npm install\n'
-            f'<span class="p">$</span> cp .env.example .env.local  <span class="c">{c["term_comment"]}</span>\n'
-            f'<span class="p">$</span> npm run build &amp;&amp; pm2 start ecosystem.config.cjs\n<span class="c">{c["term_hint"]}</span>')
+    term = (f'<span class="p">$</span> docker run -d --name chaosgone --restart unless-stopped \\\n'
+            f'    -p 3000:3000 -v chaosgone-data:/data \\\n'
+            f'    -e ANTHROPIC_API_KEY=sk-ant-... \\\n'
+            f'    jzakotnik/chaosgone\n'
+            f'<span class="c">{c["term_hint"]}</span>')
     return f'''<!DOCTYPE html>
 <html lang="{c["lang"]}">
 <head>
