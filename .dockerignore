@@ -2,4 +2,12 @@ node_modules
 .next
 data
 .git
+.github
 .env*
+!.env.example
+docs
+website
+*.md
+Dockerfile
+docker-compose.yml
+ecosystem.config.cjs

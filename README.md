@@ -49,19 +49,31 @@ A short German guide is at the [end of this file](#kurzanleitung-deutsch).
 
 ## Quick start
 
-Requirements: Node.js 22 (what it is developed and tested with) and an [Anthropic API key](https://console.anthropic.com/) for the Claude features
-(everything else works without one).
+The fastest way is Docker (an image for amd64 and arm64, so it also runs on a Raspberry Pi). You need an
+[Anthropic API key](https://console.anthropic.com/) for the Claude features; everything else works without one.
+
+```bash
+docker run -d --name chaosgone --restart unless-stopped \
+  -p 3000:3000 -v chaosgone-data:/data \
+  -e ANTHROPIC_API_KEY=sk-ant-... \
+  jzakotnik/chaosgone
+```
+
+Open <http://localhost:3000>, create a box on the home screen and tap **Teil erfassen** (add item). Your database
+and photos live in the `chaosgone-data` volume and survive updates.
+
+Prefer Docker Compose? Save [`docker-compose.yml`](docker-compose.yml), put `ANTHROPIC_API_KEY=sk-ant-...` in a
+`.env` file next to it and run `docker compose up -d`.
+
+Without Docker (Node.js 22):
 
 ```bash
 git clone https://github.com/jzakotnik/chaosgone.git
 cd chaosgone
 npm install
 cp .env.example .env.local      # then set ANTHROPIC_API_KEY
-npm run dev                     # http://localhost:3000
+npm run dev                     # http://localhost:3000; creates data/chaosgone.db and data/photos/
 ```
-
-On first start the app creates `data/chaosgone.db` and `data/photos/`. Create a box on the home screen, then tap
-**Teil erfassen** (add item).
 
 For a permanent installation see [Deployment](#deployment).
 
@@ -159,15 +171,15 @@ written in the selected language.
 
 ## Configuration
 
-Settings are environment variables. For `npm run dev` and `next start` put them in `.env.local`.
+Settings are environment variables. For `npm run dev` and `next start` put them in `.env.local`; with Docker pass them with `-e` / `--env-file`, or in a `.env` file next to `docker-compose.yml`.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | – | Needed for photo recognition, batch import, regeneration and AI search. |
 | `CLAUDE_MODEL` | `claude-opus-5-5` | Model used for all Claude calls. `claude-haiku-5-5` is much cheaper. |
-| `DATA_DIR` | `./data` | Folder for `chaosgone.db` and `photos/` (including `photos/thumbs/`). |
+| `DATA_DIR` | `./data` | Folder for `chaosgone.db` and `photos/` (including `photos/thumbs/`). Fixed to `/data` in the Docker image. |
 | `SITE_URL` | from the request | Absolute base URL used in link previews; set it behind a proxy that does not forward the host. |
-| `PORT` | `3000` | Port of `next start` and the standalone server (the pm2 file passes `-p 3500`). With Docker Compose it is the published host port. |
+| `PORT` | `3000` | Port of `next start` and the standalone server (the pm2 file passes `-p 3500`). With Docker Compose it is the published host port; with `docker run` use `-p <host>:3000`. |
 | `NEXT_OUTPUT` | – | `standalone` only inside the Docker build. Do not set it for pm2/`next start`. |
 
 ## Costs and choosing a model
@@ -224,13 +236,47 @@ native modules (`better-sqlite3`, `sharp`) install.
 
 ### Docker
 
+The image is published on Docker Hub as [`jzakotnik/chaosgone`](https://hub.docker.com/r/jzakotnik/chaosgone)
+(`linux/amd64` and `linux/arm64`). Tags: `latest` (main branch), version tags such as `1.2.3` and `sha-<commit>`.
+
+**One command:**
+
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... docker compose up -d --build     # http://localhost:3000
-PORT=3500 ANTHROPIC_API_KEY=sk-ant-... docker compose up -d   # publish on 3500 instead
+docker run -d --name chaosgone --restart unless-stopped \
+  -p 3000:3000 -v chaosgone-data:/data \
+  -e ANTHROPIC_API_KEY=sk-ant-... \
+  -e CLAUDE_MODEL=claude-haiku-5-5 \
+  jzakotnik/chaosgone
 ```
 
-Data lives in `./data` next to the compose file (mounted at `/data`). The image uses Next.js' standalone output
-(`NEXT_OUTPUT=standalone` is set in the Dockerfile).
+- **Environment:** pass settings with `-e NAME=value` or `--env-file .env` (see [Configuration](#configuration);
+  `ANTHROPIC_API_KEY`, `CLAUDE_MODEL` and `SITE_URL` are the useful ones). `DATA_DIR` is fixed to `/data` and the
+  app always listens on port 3000 inside the container.
+- **Port:** `-p 8080:3000` publishes it on host port 8080 instead.
+- **Data:** everything is in the `/data` volume (`chaosgone.db` and `photos/`). To use a host folder instead of a
+  named volume, use `-v /srv/chaosgone:/data` and make it writable for the container user first:
+  `sudo mkdir -p /srv/chaosgone && sudo chown 1000:1000 /srv/chaosgone` (the app runs as the unprivileged `node`
+  user, uid 1000).
+- **Health:** the image has a health check against `/api/status`; `docker ps` shows `healthy` once it is up.
+- **Update:** `docker pull jzakotnik/chaosgone && docker rm -f chaosgone` and run the command again. The volume keeps
+  your data and the database schema is upgraded automatically.
+- **Logs:** `docker logs -f chaosgone`.
+
+**Docker Compose:** `docker-compose.yml` uses the same image and a `chaosgone-data` volume.
+
+```bash
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env     # also supported: CLAUDE_MODEL, SITE_URL, PORT (host port)
+docker compose up -d                           # http://localhost:3000
+docker compose pull && docker compose up -d    # update
+```
+
+**Build it yourself:** `docker build -t chaosgone .` (or uncomment `build: .` in the compose file). The Dockerfile
+uses Next.js' standalone output (`NEXT_OUTPUT=standalone`) in a multi-stage build.
+
+**Publishing (maintainers):** `.github/workflows/docker-publish.yml` builds both architectures and pushes to Docker
+Hub on every push to `main` and on `v*` tags (or manually via *Run workflow*). Add two repository secrets once
+(Settings → Secrets and variables → Actions): `DOCKERHUB_USERNAME` (`jzakotnik`) and `DOCKERHUB_TOKEN` (a Docker Hub
+access token with *Read & Write* scope). The workflow also copies this README to the Docker Hub page.
 
 ### Plain `http://` on your LAN
 
@@ -301,10 +347,10 @@ data/
     └── thumbs/<uuid>.jpg 480 px square thumbnail
 ```
 
-- **Backup:** stop the app (`pm2 stop chaosgone`) and copy the whole folder, or use
+- **Backup:** stop the app (`pm2 stop chaosgone`) and copy the whole folder (with Docker: `docker run --rm -v chaosgone-data:/data -v "$PWD":/backup busybox tar czf /backup/chaosgone-data.tgz -C /data .` after `docker stop chaosgone`), or use
   `sqlite3 data/chaosgone.db ".backup backup.db"` for the database while it runs, plus a copy of `photos/`.
 - **Restore:** put the folder back and start the app.
-- **Upgrades:** `git pull && npm install && npm run build` and restart. New columns are added to an existing
+- **Upgrades:** `git pull && npm install && npm run build` and restart (Docker: pull the new image and recreate the container). New columns are added to an existing
   database automatically on start; there are no manual migrations.
 - Photos that were uploaded but never attached to an item are removed after 24 hours.
 
@@ -401,6 +447,7 @@ docs/screenshots/        images used in this README
 website/                 static landing page for a public web server (see website/README.md)
 ecosystem.config.cjs     pm2 process file
 Dockerfile, docker-compose.yml
+.github/workflows/      Docker Hub publishing
 ```
 
 **Add a language:** copy `src/messages/en.json` to `src/messages/<code>.json` and translate it, add the code to
