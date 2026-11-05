@@ -8,6 +8,11 @@
 
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
+# Build tools as a fallback: native modules (better-sqlite3, sharp) are compiled from source
+# when no prebuilt binary exists for the platform. They stay in this stage, not in the final image.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 make g++ \
+ && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 RUN npm ci
 
